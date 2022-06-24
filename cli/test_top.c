@@ -1,9 +1,30 @@
 #include "top.h"
 
 int main(void){
-	struct proc p1;
-	strcpy(p1.name, "processo_1");
+    struct dirent* dir;
+    DIR* directory;
+    num = 0;
+    
+	directory = opendir(PATH);
+	if(!directory)
+		handle_error("Errore della opendir del main");
+		
+	else{
+		dir = readdir(directory);
+			
+	if(!dir)
+		handle_error("Errore nel pasaggio di dir dal main");
+				
+	while(dir){
+		insert_process(dir);
+		dir = readdir(directory);
+	}
+					
+	print_processes();
+			
+	if(closedir(directory) == -1)
+		handle_error("Errore nella chiusura della cartella dal main");
+	}
 	
-	printf("p1 : %s\n", p1.name);
 	return 0;
 }
