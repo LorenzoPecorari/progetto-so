@@ -12,18 +12,20 @@ int main(void){
 	else{
 		dir = readdir(directory);
 			
-	if(!dir)
-		handle_error("Errore nel pasaggio di dir dal main");
+		if(!dir)
+			handle_error("Errore nel pasaggio di dir dal main");
+		
+		get_uptime(dir);
 				
-	while(dir){
-		insert_process(dir);
-		dir = readdir(directory);
-	}
+		while(dir){
+			insert_process(dir);
+			dir = readdir(directory);
+		}
 					
-	print_processes();
+		print_processes();
 			
-	if(closedir(directory) == -1)
-		handle_error("Errore nella chiusura della cartella dal main");
+		if(closedir(directory) == -1)
+			handle_error("Errore nella chiusura della cartella dal main");
 	}
 	
 	return 0;
