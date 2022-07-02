@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -21,11 +22,14 @@ typedef struct proc{
 	int starttime;
 	int utime;
 	int stime;
+    float load_percentage;
 } proc;
 
 // variabili globali
 extern int num;
+extern long int hertz;
 extern float uptime;
+extern float cpu_percentage;
 extern proc procs[MAX_PROCESSES];
 
 // marcature funzioni

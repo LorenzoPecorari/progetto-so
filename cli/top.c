@@ -2,8 +2,10 @@
 
 // variabili globali
 int num;
-proc procs[MAX_PROCESSES];
 float uptime;
+float cpu_percentage;
+long int hertz;
+proc procs[MAX_PROCESSES];
 
 // restituisce messaggio in caso di errore
 void handle_error(const char* msg){
@@ -112,6 +114,9 @@ void get_stat(const char* path){
 	procs[num].utime = atoi(stats[13]);
     procs[num].stime = atoi(stats[14]);
     procs[num].starttime = atoi(stats[21]);
+    procs[num].load_percentage = (((procs[num].stime + procs[num].utime) / hertz) / (uptime - (procs[num].starttime / hertz))) * 100;
+    cpu_percentage += procs[num].load_percentage; 
+
 
 	if(close(fd) == -1)
 		handle_error("Errore nella chiusura del file descriptor");
@@ -177,9 +182,13 @@ void insert_process(struct dirent* d){
 // stampa i processi
 void print_processes(){
 	int i = 0;
-	printf("# PID  - NAME    - CMDLINE    \t- STARTTIME    \t- TIME\n");
+	
+	printf("No. processes : %d - Uptime : %.2lf - Load : %.2lf %c\n", num, uptime, cpu_percentage, '%');
+	
+	printf("# PID  - NAME    - CMDLINE    \t- STARTTIME    \t- TIME - CPU LOAD\n");
 	for(; i < num; i++)
-		printf("# %s - %s - %s - %d - %d\n", procs[i].path, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].utime + procs[i].stime);
+		printf("# %s - %s - %s - %d - %d - %.2f %c\n", procs[i].path, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].utime + procs[i].stime, procs[i].load_percentage, '%');
+		
 	printf("\n");
 	return;
 }
