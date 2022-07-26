@@ -19,10 +19,15 @@ typedef struct proc{
 	char* path;
 	char name[NAME_SIZE];
 	char cmdline[BUF_SIZE];
+	char status;
 	int starttime;
 	int utime;
 	int stime;
+	int children_time;
+	int tot_time;
+	int mem_usage;
     float load_percentage;
+    float mem_percentage;
 } proc;
 
 // variabili globali
@@ -30,10 +35,12 @@ extern int num;
 extern long int hertz;
 extern float uptime;
 extern float cpu_percentage;
+extern long unsigned memory;
 extern proc procs[MAX_PROCESSES];
 
 // marcature funzioni
 void handle_error(const char* msg);
+void get_memory();
 void insert_process(struct dirent* d);
 void remove_parenthesis(char* s);
 void get_uptime(struct dirent* d);

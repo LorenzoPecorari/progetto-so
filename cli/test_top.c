@@ -17,6 +17,7 @@ int main(void){
 			handle_error("Errore nel pasaggio di dir dal main");
 		
 		get_uptime(dir);
+		get_memory();
 				
 		while(dir){
 			insert_process(dir);
