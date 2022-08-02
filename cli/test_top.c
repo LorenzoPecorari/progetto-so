@@ -6,29 +6,7 @@ int main(void){
     num = 0;
     hertz = sysconf(_SC_CLK_TCK);
     
-	directory = opendir(PATH);
-	if(!directory)
-		handle_error("Errore della opendir del main");
-		
-	else{
-		dir = readdir(directory);
-			
-		if(!dir)
-			handle_error("Errore nel pasaggio di dir dal main");
-		
-		get_uptime(dir);
-		get_memory();
-				
-		while(dir){
-			insert_process(dir);
-			dir = readdir(directory);
-		}
-					
-		print_processes();
-			
-		if(closedir(directory) == -1)
-			handle_error("Errore nella chiusura della cartella dal main");
-	}
+	program_runner(directory, dir);
 	
 	return 0;
 }

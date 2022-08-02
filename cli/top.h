@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <string.h>
 #include <dirent.h>
 #include <sys/types.h>
@@ -32,6 +33,7 @@ typedef struct proc{
 } proc;
 
 // variabili globali
+extern struct sigaction act;
 extern int num;
 extern long int hertz;
 extern long unsigned uptime;
@@ -40,7 +42,14 @@ extern long unsigned memory;
 extern proc procs[MAX_PROCESSES];
 
 // marcature funzioni
+// gestione errori
 void handle_error(const char* msg);
+
+// gestione timer
+void initialize_timer();
+
+// gestione processi
+void clean_structures();
 void get_memory();
 void insert_process(struct dirent* d);
 void remove_parenthesis(char* s);
@@ -52,4 +61,5 @@ void get_cmdline(const char* directory, char buf[]);
 void sort_processes();
 void bubblesort();
 void print_processes();
+void program_runner(DIR* directory, struct dirent* dir);
 

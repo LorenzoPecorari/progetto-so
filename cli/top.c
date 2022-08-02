@@ -1,6 +1,7 @@
 #include "top.h"
 
 // variabili globali
+struct sigaction act;
 int num;
 long unsigned uptime;
 double cpu_percentage;
@@ -11,7 +12,32 @@ proc procs[MAX_PROCESSES];
 // restituisce messaggio in caso di errore
 void handle_error(const char* msg){
 	perror(msg);
-	return;
+	exit(EXIT_FAILURE);
+}
+
+void sigalrm_handler(){
+	print_processes();
+}
+
+void initialize_timer(){
+	struct sigaction act = {0};
+	act.sa_handler = sigalrm_handler;
+	int ret = sigaction(SIGALRM, &act, NULL);
+	
+	if(ret == -1)
+		handle_error("Errore nella sigaction");
+}
+
+// azzera le variabile usate dal programma
+void clean_structures(){
+	uptime = 0;
+	cpu_percentage = 0;
+	memory = 0;
+	
+	for(int i = 0; i < num; i++)
+		procs[i] = (proc) {0};
+	
+	num = 0;
 }
 
 // ottiene la dimensione della ram usabile
@@ -42,7 +68,6 @@ void get_memory(){
 	}
 	
 	memory = atoi(buf);
-	printf("total memory : %ld\n", memory);
 	return;
 }
 
@@ -317,6 +342,40 @@ void print_processes(){
 		printf("# %d - %s - %s - %lld - %ld - %ld - %.2lf %c\n", procs[i].pid, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].tot_time, procs[i].mem_usage, procs[i].load_percentage, '%');
 	
 	printf("\n");
-	return;
+	//alarm(1);
+	//pause();
+}
+
+void program_runner(DIR* directory, struct dirent* dir){	
+	initialize_timer();
+	
+	while(1){
+		clean_structures();
+		
+		directory = opendir(PATH);
+		
+		if(!directory)
+			handle_error("Errore della opendir del main");
+		
+		dir = readdir(directory);
+			
+		if(!dir)
+			handle_error("Errore nel pasaggio di dir dal main");
+		
+		get_uptime(dir);
+		get_memory();
+				
+		while(dir){
+			insert_process(dir);
+			dir = readdir(directory);
+		}
+			
+		if(closedir(directory) == -1)
+			handle_error("Errore nella chiusura della cartella dal main");
+	
+	alarm(1);
+	pause();
+	}	
+				
 }
 
