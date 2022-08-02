@@ -13,10 +13,11 @@
 #define NAME_SIZE 64
 #define MAX_PROCESSES 2048
 #define BUF_SIZE 128
+#define clrscr() printf("\e[1;1H\e[2J")
 
 // struttura per processo
 typedef struct proc{
-	char* path;
+	int pid;
 	char name[NAME_SIZE];
 	char cmdline[BUF_SIZE];
 	char status;
@@ -48,5 +49,7 @@ void get_stat(const char* path_to_stat);
 void get_statm(const char* path_to_statm);
 void get_stats(const char* path);
 void get_cmdline(const char* directory, char buf[]);
+void sort_processes();
+void bubblesort();
 void print_processes();
 

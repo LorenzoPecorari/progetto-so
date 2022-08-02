@@ -260,7 +260,7 @@ void insert_process(struct dirent* d){
     get_cmdline(path_to_cmdline, cmdline_buf);
     get_stats(path);
 
-	procs[num].path = d->d_name;
+	procs[num].pid = atoi(d->d_name);
 	strcat(procs[num].cmdline, cmdline_buf);
 	
 	// da rivedere
@@ -279,15 +279,42 @@ void insert_process(struct dirent* d){
 	return;
 }
 
+
+
+// algoritmo bubblesort per ordinamento decrescente per impatto cpu
+void bubblesort(){
+	proc aux = procs[0];
+	int n = num -1;
+	
+	for(int i = 0; i < n-1; i++)
+		for(int j = 0; j < n-1; j++)
+			if(procs[j].load_percentage < procs[j+1].load_percentage){
+			aux = procs[j];
+			procs[j] = procs[j+1];
+			procs[j+1] = aux;
+			}
+	
+	return;
+}
+
+void sort_processes(){
+	// ordinamento dei processi per la stampa
+	bubblesort();
+	return;
+}
+
 // stampa i processi
 void print_processes(){
 	int i = 0;
 	
+	sort_processes();
+	clrscr();
+	
 	printf("No. processes : %d - Uptime : %.2ld - Load : %.2lf %c\n", num, uptime, cpu_percentage, '%');
 	
 	printf("# PID  - NAME    - CMDLINE    \t- STARTTIME    \t- TIME - MEMORY_LOAD \t - CPU LOAD\n");
-	for(; i < num; i++)
-		printf("# %s - %s - %s - %lld - %ld - %ld - %.2lf %c\n", procs[i].path, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].tot_time, procs[i].mem_usage, procs[i].load_percentage, '%');
+	for(; i < 10; i++)
+		printf("# %d - %s - %s - %lld - %ld - %ld - %.2lf %c\n", procs[i].pid, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].tot_time, procs[i].mem_usage, procs[i].load_percentage, '%');
 	
 	printf("\n");
 	return;
