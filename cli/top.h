@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <string.h>
 #include <dirent.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -15,6 +16,7 @@
 #define MAX_PROCESSES 2048
 #define BUF_SIZE 128
 #define clrscr() printf("\e[1;1H\e[2J")
+#define resize_scr() printf("\e[8;30;90t\n");
 
 // struttura per processo
 typedef struct proc{
@@ -40,6 +42,8 @@ extern long unsigned uptime;
 extern double cpu_percentage;
 extern long unsigned memory;
 extern proc procs[MAX_PROCESSES];
+extern pthread_t thr;
+extern FILE *f;
 
 // marcature funzioni
 // gestione errori

@@ -8,6 +8,11 @@ double cpu_percentage;
 long unsigned memory;
 long int hertz;
 proc procs[MAX_PROCESSES];
+pthread_t thr;
+FILE *f;
+
+//variabile ausiliaria
+int fun_selected;
 
 // restituisce messaggio in caso di errore
 void handle_error(const char* msg){
@@ -15,7 +20,26 @@ void handle_error(const char* msg){
 	exit(EXIT_FAILURE);
 }
 
+void *thread_handler(void *k){
+	int *K = k;
+	printf(" *** thread_handler activated *** \n");
+
+	printf("prima del while del thread\n");
+
+	while(read(STDIN_FILENO, &fun_selected, 1)){
+		if(*K == 0)
+			*K = fun_selected;
+	}
+	printf("dopo il while del thread\n");
+
+	printf("readed : %c\n", fun_selected);
+	return NULL;
+}
+
 void sigalrm_handler(){
+	//char c = 0;
+	printf(" @@@ sigalrm_handler activated @@@ \n");
+	printf("sigalrm detected, printing processes again...\n");
 	print_processes();
 }
 
@@ -304,8 +328,6 @@ void insert_process(struct dirent* d){
 	return;
 }
 
-
-
 // algoritmo bubblesort per ordinamento decrescente per impatto cpu
 void bubblesort(){
 	proc aux = procs[0];
@@ -335,13 +357,14 @@ void print_processes(){
 	sort_processes();
 	clrscr();
 	
-	printf("No. processes : %d - Uptime : %.2ld - Load : %.2lf %c\n", num, uptime, cpu_percentage, '%');
+	printf(" ### ### ###\t+-----------------------------------------------------+\n  #  # # # # \t| No. processes : %d | Uptime : %.2ld | Load : %.2lf %c |\n  #  # # ### \t+-----------------------------------------------------+\n  #  ### #\n\n ", num, uptime, cpu_percentage, '%');
 	
 	printf("# PID  - NAME    - CMDLINE    \t- STARTTIME    \t- TIME - MEMORY_LOAD \t - CPU LOAD\n");
 	for(; i < 10; i++)
 		printf("# %d - %s - %s - %lld - %ld - %ld - %.2lf %c\n", procs[i].pid, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].tot_time, procs[i].mem_usage, procs[i].load_percentage, '%');
 	
-	printf("\n");
+	//printf("\nPress enter for select a command: ");
+
 	//alarm(1);
 	//pause();
 }
@@ -349,7 +372,15 @@ void print_processes(){
 void program_runner(DIR* directory, struct dirent* dir){	
 	initialize_timer();
 	
+	printf(" - timer inizializzato\n");
+	
+	int k = 0;
+	
 	while(1){
+		
+		pthread_create(&thr, NULL, thread_handler, &k);
+		printf(" - thread creato\n");
+	
 		clean_structures();
 		
 		directory = opendir(PATH);
@@ -373,9 +404,38 @@ void program_runner(DIR* directory, struct dirent* dir){
 		if(closedir(directory) == -1)
 			handle_error("Errore nella chiusura della cartella dal main");
 	
-	alarm(1);
-	pause();
+		printf(" - prima di alarm\n");
+		alarm(3);
+	
+		printf(" - prima di popen\n");
+		f = popen("sleep 2;", "r");
+		//printf(" - dopo popen\n");
+	
+		char buf[4];
+		for(int i = 0; i < 4; i++)
+			buf[i] = '\0';
+	
+		while(fgets(buf, 4, f));
+	
+		if(buf[0] != '\0')
+			printf("buf : %s\n", buf);
+		else
+			printf("\n || SKIP || \n");
+		pthread_cancel(thr);
+		pthread_join(thr, NULL);
+	
+		pclose(f);
+	
+		if(k == 'q'){
+			printf("%c è stato premuto\n", k);
+			break;
+			}
+	
+		pause();
+		
 	}	
+	
+	printf("Terminazione programma\n");
 				
 }
 

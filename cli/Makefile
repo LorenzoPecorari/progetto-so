@@ -3,8 +3,8 @@ SOURCE	= top.c test_top.c
 HEADER	= top.h
 OUT	= test_top
 CC	 = gcc
-FLAGS	 = -g -c -Wall -Wuninitialized
-LFLAGS	 =
+FLAGS	 = -g -c  -Wall
+LFLAGS	 = -lpthread
 
 all: $(OBJS)
 	$(CC) -g $(OBJS) -o $(OUT) $(LFLAGS)
