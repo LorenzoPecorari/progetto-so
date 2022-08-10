@@ -9,12 +9,15 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include <fcntl.h>
 
 #define PATH "/proc"
 #define NAME_SIZE 64
 #define MAX_PROCESSES 2048
 #define BUF_SIZE 128
+
+/*  MACRO PER SETTING FINESTRA */
 #define clrscr() printf("\e[1;1H\e[2J")
 #define resize_scr() printf("\e[8;30;90t\n");
 
@@ -34,7 +37,7 @@ typedef struct proc{
     float mem_percentage;
 } proc;
 
-// variabili globali
+/* VARIABILI GLOBALI*/
 extern struct sigaction act;
 extern int num;
 extern long int hertz;
@@ -44,15 +47,18 @@ extern long unsigned memory;
 extern proc procs[MAX_PROCESSES];
 extern pthread_t thr;
 extern FILE *f;
+extern int cmd_selected;
+extern int quit;
+extern pid_t pid_victim;
 
-// marcature funzioni
+/* MARCATURE FUNZIONI */
 // gestione errori
 void handle_error(const char* msg);
 
 // gestione timer
 void initialize_timer();
 
-// gestione processi
+// lettura processi e gestione strutture
 void clean_structures();
 void get_memory();
 void insert_process(struct dirent* d);
@@ -66,4 +72,9 @@ void sort_processes();
 void bubblesort();
 void print_processes();
 void program_runner(DIR* directory, struct dirent* dir);
+
+// manipolazione processi
+pid_t get_proc_pid();
+int choose_command(char k);
+int command_runner(pid_t pid, int command);
 

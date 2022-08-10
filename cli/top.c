@@ -10,6 +10,9 @@ long int hertz;
 proc procs[MAX_PROCESSES];
 pthread_t thr;
 FILE *f;
+int cmd_selected;
+int quit = 0;
+pid_t pid_victim = 0;
 
 //variabile ausiliaria
 int fun_selected;
@@ -20,29 +23,46 @@ void handle_error(const char* msg){
 	exit(EXIT_FAILURE);
 }
 
+// gestore del thread per la lettura del comando da tastiera
 void *thread_handler(void *k){
 	int *K = k;
-	printf(" *** thread_handler activated *** \n");
-
-	printf("prima del while del thread\n");
-
-	while(read(STDIN_FILENO, &fun_selected, 1)){
+	
+	// resta in ascolto per eventuali input,
+	// se qualcosa viene immesso lo memorizza in "k"
+	while(read(0, &fun_selected, 1) && cmd_selected == -1){
 		if(*K == 0)
 			*K = fun_selected;
-	}
-	printf("dopo il while del thread\n");
-
-	printf("readed : %c\n", fun_selected);
+		
+		if(fun_selected == 10)
+			break;
+		}
+	
 	return NULL;
 }
 
+// funzione usata dal gestore del segnale per eseguire
+// l'eventuale comando selezionato dall'utente
 void sigalrm_handler(){
-	//char c = 0;
-	printf(" @@@ sigalrm_handler activated @@@ \n");
-	printf("sigalrm detected, printing processes again...\n");
+	
+	if(cmd_selected != 4 && cmd_selected != -1 && quit == 0){		
+		
+		const char* str = "Insert the PID of the process : ";
+		int len = strlen(str);
+		if(write(0, str, len) == -1)
+			handle_error("Errore nella stampa a schermo");
+		
+		pid_victim = get_proc_pid();
+		
+		if(pid_victim != 0 && pid_victim != -1){
+			command_runner(pid_victim, cmd_selected);
+			cmd_selected = -1;
+			}
+	}
+	
 	print_processes();
 }
 
+// inizializza il gestore di SIGALRM
 void initialize_timer(){
 	struct sigaction act = {0};
 	act.sa_handler = sigalrm_handler;
@@ -202,7 +222,6 @@ void get_stat(const char* path_to_stat){
 }
 
 // legge informazioni da /proc/[PID]/statm
-// (ridondante, possibile rimuoverla, stesse info prese da stat)
 void get_statm(const char* path_to_statm){
 	int fd, i, idx, inner_idx;
 	
@@ -362,27 +381,26 @@ void print_processes(){
 	printf("# PID  - NAME    - CMDLINE    \t- STARTTIME    \t- TIME - MEMORY_LOAD \t - CPU LOAD\n");
 	for(; i < 10; i++)
 		printf("# %d - %s - %s - %lld - %ld - %ld - %.2lf %c\n", procs[i].pid, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].tot_time, procs[i].mem_usage, procs[i].load_percentage, '%');
+		
+	printf("\n +---------- COMANDI DISPONIBILI ------------------+\n | t -> termina processo     k -> uccide processo  |\n | s -> sospende processo   r -> riprende processo |\n +-------------------------------------------------+\n");
 	
-	//printf("\nPress enter for select a command: ");
-
-	//alarm(1);
-	//pause();
+	//(premere la lettera e invio per selezionare) 
+	
 }
 
+// funzione che esegue e gestisce il programma principale
 void program_runner(DIR* directory, struct dirent* dir){	
 	initialize_timer();
+	cmd_selected = -1;
 	
-	printf(" - timer inizializzato\n");
-	
-	int k = 0;
+	int k;
+	char buf[4];
 	
 	while(1){
-		
-		pthread_create(&thr, NULL, thread_handler, &k);
-		printf(" - thread creato\n");
 	
-		clean_structures();
-		
+		k = 0;
+		clean_structures();	
+		pthread_create(&thr, NULL, thread_handler, &k);	
 		directory = opendir(PATH);
 		
 		if(!directory)
@@ -404,38 +422,31 @@ void program_runner(DIR* directory, struct dirent* dir){
 		if(closedir(directory) == -1)
 			handle_error("Errore nella chiusura della cartella dal main");
 	
-		printf(" - prima di alarm\n");
 		alarm(3);
-	
-		printf(" - prima di popen\n");
+		
+		// file descriptor che apre pipe in ascolto su stdin
+		//  ed esegue una sleep di 2s
 		f = popen("sleep 2;", "r");
-		//printf(" - dopo popen\n");
-	
-		char buf[4];
+		
 		for(int i = 0; i < 4; i++)
 			buf[i] = '\0';
 	
 		while(fgets(buf, 4, f));
-	
-		if(buf[0] != '\0')
-			printf("buf : %s\n", buf);
-		else
-			printf("\n || SKIP || \n");
-		pthread_cancel(thr);
+	pthread_cancel(thr);
 		pthread_join(thr, NULL);
 	
-		pclose(f);
+		if(pclose(f) == -1)
+			printf("Thr pipe closing error\n");
 	
-		if(k == 'q'){
-			printf("%c è stato premuto\n", k);
-			break;
+		if(k != 0){
+			cmd_selected = choose_command((char) k);
+			
+			if(quit == 1)
+				break;
 			}
-	
+			
 		pause();
-		
 	}	
-	
-	printf("Terminazione programma\n");
 				
 }
 

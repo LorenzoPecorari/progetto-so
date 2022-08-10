@@ -1,5 +1,5 @@
-OBJS	= top.o test_top.o
-SOURCE	= top.c test_top.c
+OBJS	= top.o commands.o test_top.o
+SOURCE	= top.c commands.c test_top.c
 HEADER	= top.h
 OUT	= test_top
 CC	 = gcc
@@ -11,6 +11,9 @@ all: $(OBJS)
 
 top.o: top.c
 	$(CC) $(FLAGS) top.c 
+
+commands.o: commands.c
+	$(CC) $(FLAGS) commands.c
 
 test_top.o: test_top.c
 	$(CC) $(FLAGS) test_top.c 
