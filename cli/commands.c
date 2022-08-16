@@ -1,5 +1,6 @@
 #include "top.h"
 
+// legenda dei comandi selezionabili dall'utente
 /*
 	cmd_selected = 0 -> terminate
 	cmd_selected = 1 -> kill
@@ -7,62 +8,63 @@
 	cmd_selected = 3 -> resume
 	cmd_selected = 4 -> quit (from the main program!)
 	cmd_selected = -1 -> do nothing, clean and update the window
+	cmd_selected = -2 -> invalid command
 */
 
+// ottiene il valore del pid del processo da manipolare
 pid_t get_proc_pid(){
 
 	char buf[8];
 	memset(buf, '\0', 8);
-	int idx = 0;
 	
-	while(read(0, &buf[idx], 1)){
-		//printf("readed : %c\n", buf[idx]);
-		if(buf[idx] == '\n'){
-			cmd_selected = -1; 
-			break;
-			}
-		idx++;
-		}
+	scanf("%s", buf);
 	
-	//printf("PID letto : %s\n", buf);
-	
-	if(atoi(buf) == 0)
+	if(atoi(buf) < 0){
+		cmd_selected = -2;
 		return -1;
+		}
 	
 	return (pid_t) atoi(buf);
 }
 
-int choose_command(char k){
+// sceglie il comando desiderato
+int choose_command(int k){
 	switch(k){
-		case 't':
+		case 116: 	// k = 't'
 			cmd_selected = 0;
 			break;
 		
-		case 'k':
+		case 107: 	// k = 'k'
 			cmd_selected = 1;
 			break;
 	
-		case 's':
+		case 115:	// k = 's'
 			cmd_selected = 2;
 			break;
 		
-		case 'r':
+		case 114:	// k = 'r'
 			cmd_selected = 3;
 			break;
 			
-		case 'q':
+		case 113:	// k = 'q'
 			cmd_selected = 4;
 			quit++;
 			break;
 			
-		default :
+		case 10:
 			cmd_selected = -1;
+			break;
+		
+		default :
+			cmd_selected = -2;
 			break;
 	}
 	
 	return cmd_selected;
 }
 
+
+// esegue il comando che scelto
 int command_runner(pid_t pid, int command){
 
 	int retval = 0;
@@ -90,7 +92,6 @@ int command_runner(pid_t pid, int command){
 		
 		case 4:
 			// termina il programma principale
-			printf("Exit from program\n");
 			quit = 1;
 			break;
 		
@@ -115,6 +116,4 @@ int command_runner(pid_t pid, int command){
 	
 	return 1;
 }
-
-
 

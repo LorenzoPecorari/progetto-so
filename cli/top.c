@@ -2,20 +2,16 @@
 
 // variabili globali
 struct sigaction act;
-int num;
-long unsigned uptime;
-double cpu_percentage;
-long unsigned memory;
-long int hertz;
-proc procs[MAX_PROCESSES];
 pthread_t thr;
 FILE *f;
 int cmd_selected;
 int quit = 0;
 pid_t pid_victim = 0;
 
-//variabile ausiliaria
+//variabili ausiliarie
 int fun_selected;
+int k;
+int invalid_choice;
 
 // restituisce messaggio in caso di errore
 void handle_error(const char* msg){
@@ -29,12 +25,16 @@ void *thread_handler(void *k){
 	
 	// resta in ascolto per eventuali input,
 	// se qualcosa viene immesso lo memorizza in "k"
-	while(read(0, &fun_selected, 1) && cmd_selected == -1){
-		if(*K == 0)
-			*K = fun_selected;
+	while(read(0, &fun_selected, 1) && (cmd_selected == -1 || cmd_selected == -2)){
+		
+		*K = fun_selected;
+		
+		//printf("fun_selected : %d\n", fun_selected);
+		//printf("k : %d\n", *K);
 		
 		if(fun_selected == 10)
 			break;
+		
 		}
 	
 	return NULL;
@@ -43,22 +43,43 @@ void *thread_handler(void *k){
 // funzione usata dal gestore del segnale per eseguire
 // l'eventuale comando selezionato dall'utente
 void sigalrm_handler(){
-	
-	if(cmd_selected != 4 && cmd_selected != -1 && quit == 0){		
+
+	if(k != 0){
+			
+		if(k == 10 && !invalid_choice){
+			if(write(0, "Insert a command : ", strlen("Insert a command : ")) == -1)
+				handle_error("Errore di lettura in stdin");
+			if(read(0, (char*) &k, 1) == -1)
+				handle_error("Errore di scrittura in stdin");
+			printf("sig_handler - k : %c\n", (char) k);
+		}
+
+		cmd_selected = choose_command(k);
 		
-		const char* str = "Insert the PID of the process : ";
-		int len = strlen(str);
-		if(write(0, str, len) == -1)
-			handle_error("Errore nella stampa a schermo");
+		//printf("cmd_selected : %d\n", cmd_selected);
 		
-		pid_victim = get_proc_pid();
+		if(cmd_selected == -2)
+			invalid_choice++;
+		else
+			invalid_choice = 0;
 		
-		if(pid_victim != 0 && pid_victim != -1){
-			command_runner(pid_victim, cmd_selected);
-			cmd_selected = -1;
-			}
-	}
-	
+		if(cmd_selected != 4 && cmd_selected != -1 && !invalid_choice && quit == 0){		
+		
+			const char* str = "Insert the PID of the process : ";
+			int len = strlen(str);
+			if(write(0, str, len) == -1)
+				handle_error("Errore nella stampa a schermo");
+		
+			pid_victim = get_proc_pid();
+		
+			if(pid_victim != 0 && pid_victim != -1){
+				command_runner(pid_victim, cmd_selected);
+				cmd_selected = -1;
+				}
+		}
+			
+	}	
+		
 	print_processes();
 }
 
@@ -82,232 +103,6 @@ void clean_structures(){
 		procs[i] = (proc) {0};
 	
 	num = 0;
-}
-
-// ottiene la dimensione della ram usabile
-void get_memory(){
-	char path[] = "/proc/meminfo";
-	int fd;
-	if(!(fd = open(path, O_RDONLY, 0666)))
-		handle_error("Errore nell'apertura di fd per meminfo");
-		
-	char buf[32];
-	memset(buf, 0, 32);
-	
-	int i = 0;
-	while(read(fd, &buf[i], 1) && i < 32 && buf[i]!=32)
-		i++;
-	
-	while(read(fd, &buf[i], 1) && i < 32 && buf[i]==32)
-		i++;
-	
-	char temp = buf[i];
-	memset(buf, 0, 32);
-	i = 0;
-	buf[i] = temp;
-	i++;
-	
-	while(read(fd, &buf[i], 1) && i < 32 && buf[i] != 32){
-		i++;
-	}
-	
-	memory = atoi(buf);
-	return;
-}
-
-// rimuove le parentesi dal nome preso da stat
-void remove_parenthesis(char* s){
-	if(!s)
-		handle_error("Riferimento nullo a stringa");
-		
-	int len = strlen(s);
-	
-	int i = 0;
-	for(; i < len - 2; i++)
-		s[i] = s[i+1];
-		
-	s[i] = '\0';
-	
-	return;
-}
-
-// ottiene il valore uptime di /proc
-void get_uptime(struct dirent* dir){
-    if(!dir)
-        handle_error("Errore nel passaggio del puntatore alla diretory");
-
-    const char* string_file = "/proc/uptime";
-   
-    int fd;
-    if(!(fd = open(string_file, O_RDONLY, 0666)))
-        handle_error("Errore nell'apertura di fd per uptime");
-    
-    char time[16];
-    int s = 0;
-    memset(time, 0, 16);
-
-    while(read(fd, &time[s], 1) && s < 16)
-        if(time[s] == 32)
-            break;
-
-    while(read(fd, &time[s], 1) && s < 16)
-        s++;
-
-    uptime = atol	(time);  
-
-    if(close(fd) == -1)
-        handle_error("Errore nella chiusura di uptime");
-        
-    return;
-}
-
-// analisi stat e statm del processo per ricavarne informazioni
-/*
-	- stats[1] -> nome del processo
-	- stats[4] -> stato del processo
-	- stats[13] -> tempo in user mode
-	- stats[14] -> tempo in kernel mode
-	- (stats[17]  + stats[18]) -> tempo processi figli
-	- stats[21] -> tempo di start
-	- stats[24] -> tempo avvio processo dopo avvio os
-	- statm[0] -> totale memoria virtuale del processo
-	- statm[1] -> memoria processo residente nella ram
-*/
-
-//legge  informazioni da /proc/[PID]/stat
-void get_stat(const char* path_to_stat){
-	int fd, i, idx, inner_idx;
-    
-    if((fd = open(path_to_stat, O_RDONLY, 0666)) == -1)
-        handle_error("Errore nell'apertura di fd per stat");    
-
-    char stats[64][32];
-    char temp;
-    
-    for(i = 0; i < 64; i++){
-        memset(stats[i], 0, 32);
-	}
-	
-	idx = 0;
-    inner_idx = 0;
-    temp = 0;
-    
-    while(read(fd, &temp, 1) && idx < 64 && inner_idx < 32){
-        if(temp == 32){
-            inner_idx = 0;
-            idx++;
-        }
-        else{
-            stats[idx][inner_idx] = temp;
-            inner_idx++;
-            }
-    }
-    
-    if(close(fd) == -1){
-    	handle_error("Errore nella chiusura di fd per stat");
-    }
-    
-	strcpy(procs[num].name, stats[1]);
-    strcpy(&procs[num].status, stats[4]);
-	procs[num].utime = atol(stats[13]);
-    procs[num].stime = atol(stats[14]);
-    procs[num].children_time = atol(stats[15]) + atol(stats[16]);
-    procs[num].tot_time = procs[num].utime + procs[num].stime + procs[num].children_time;
-    procs[num].starttime = atol(stats[21]);
-    procs[num].mem_usage = atol(stats[23]);
-    
-	remove_parenthesis(procs[num].name);
-
-	return;
-}
-
-// legge informazioni da /proc/[PID]/statm
-void get_statm(const char* path_to_statm){
-	int fd, i, idx, inner_idx;
-	
-    if((fd = open(path_to_statm, O_RDONLY, 0666)) == -1){
-        handle_error("Errore nell'apertura di fd per statm");   
-	}
-	
-	char temp;
-	char statm[7][16];
-    
-    for(i = 0; i < 7; i++){
-		memset(statm[i], 0, 16);
-    }
-
-	idx = 0;
-	inner_idx = 0;
-	temp = 0;
-	
-	while(read(fd, &temp, 1) && idx < 7 && inner_idx < 16){
-        if(temp == 32){
-            inner_idx = 0;
-            idx++;
-        }
-        else{
-            statm[idx][inner_idx] = temp;
-            inner_idx++;
-            }
-    }
-
-	if(close(fd) == -1)
-		handle_error("Errore nella chiusura di fd per statm");
-    
-    procs[num].mem_usage = atol(statm[1]);
-
-	return;
-}
-
-void get_stats(const char* path){
-	if(!path)
-		handle_error("Errore nel passaggio del percorso");
-		
-	int path_size = 32;
-	char path_to_stat[path_size];
-	char path_to_statm[path_size];
-	
-	memset(path_to_stat, 0, path_size);
-    strcpy(path_to_stat, PATH);
-    strcat(path_to_stat, "/");
-    strcat(path_to_stat, path);
-    strcat(path_to_stat, "/stat");
-
-	memset(path_to_statm, 0, path_size);
-	strcpy(path_to_statm, PATH);
-    strcat(path_to_statm, "/");
-    strcat(path_to_statm, path);
-    strcat(path_to_statm, "/statm");
-
-	get_stat(path_to_stat);
-	//get_statm(path_to_statm);
-	
-	procs[num].load_percentage = (double) (procs[num].tot_time / hertz) / (uptime - (procs[num].starttime / hertz)) * 100;
-    cpu_percentage += procs[num].load_percentage;
-    
-    cpu_percentage += procs[num].load_percentage;
-    	
-	return;
-}
-
-// ottiene cmdline di singolo processo
-void get_cmdline(const char* directory, char buf[]){
-	if(!directory)
-		handle_error("Cartella errata");
-
-	int fd = open(directory, O_RDONLY, 0640);
-	if(!fd)
-		handle_error("File descriptor errato");
-
-	int size = 0;
-
-	while(read(fd, &buf[size], 1) && size < BUF_SIZE)
-	    size++;
-
-    if(close(fd) == -1)
-        handle_error("Errore nella chiusura della cmdline");
-
-    return;
 }
 
 // inserisce il processo nella struttura
@@ -382,9 +177,7 @@ void print_processes(){
 	for(; i < 10; i++)
 		printf("# %d - %s - %s - %lld - %ld - %ld - %.2lf %c\n", procs[i].pid, procs[i].name, procs[i].cmdline, procs[i].starttime, procs[i].tot_time, procs[i].mem_usage, procs[i].load_percentage, '%');
 		
-	printf("\n +---------- COMANDI DISPONIBILI ------------------+\n | t -> termina processo     k -> uccide processo  |\n | s -> sospende processo   r -> riprende processo |\n +-------------------------------------------------+\n");
-	
-	//(premere la lettera e invio per selezionare) 
+	printf("\n +---------- COMANDI DISPONIBILI ------------------+\n |    Premere invio per selezionare un'opzione     |\n | t -> termina processo    k -> uccide processo   |\n | s -> sospende processo   r -> riprende processo |\n +-------------------------------------------------+\n");
 	
 }
 
@@ -393,8 +186,8 @@ void program_runner(DIR* directory, struct dirent* dir){
 	initialize_timer();
 	cmd_selected = -1;
 	
-	int k;
-	char buf[4];
+	char buf;
+	//char buf[4];
 	
 	while(1){
 	
@@ -428,24 +221,24 @@ void program_runner(DIR* directory, struct dirent* dir){
 		//  ed esegue una sleep di 2s
 		f = popen("sleep 2;", "r");
 		
+		/*
 		for(int i = 0; i < 4; i++)
 			buf[i] = '\0';
+		*/
+		buf = '\0';
 	
-		while(fgets(buf, 4, f));
-	pthread_cancel(thr);
+		while(fgets(&buf, 4, f));
+		
+		pthread_cancel(thr);
 		pthread_join(thr, NULL);
 	
 		if(pclose(f) == -1)
-			printf("Thr pipe closing error\n");
+			handle_error("Errore nell'apertura della pipe");
 	
-		if(k != 0){
-			cmd_selected = choose_command((char) k);
-			
-			if(quit == 1)
-				break;
-			}
-			
 		pause();
+		
+		if(quit == 1)
+			break;
 	}	
 				
 }

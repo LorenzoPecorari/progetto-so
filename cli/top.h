@@ -75,6 +75,6 @@ void program_runner(DIR* directory, struct dirent* dir);
 
 // manipolazione processi
 pid_t get_proc_pid();
-int choose_command(char k);
+int choose_command(int k);
 int command_runner(pid_t pid, int command);
 

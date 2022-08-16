@@ -1,5 +1,6 @@
 #include "top.h"
 
+// main del programma
 int main(void){
     struct dirent* dir;
     DIR* directory;
