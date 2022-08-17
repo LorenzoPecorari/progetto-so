@@ -71,22 +71,22 @@ int command_runner(pid_t pid, int command){
 
 	switch(command){
 		case 0:
-			// termina il programma selezionato
+			// termina il processo selezionato
 			retval = kill(pid, SIGTERM);
 			break;
 		
 		case 1:
-			// "uccide" il programma selezionato
+			// uccide il processo selezionato
 			retval = kill(pid, SIGKILL);
 			break;
 		
 		case 2:
-			// sospende il programma selezionato
+			// sospende il processo selezionato
 			retval = kill(pid, SIGSTOP);
 			break;
 			
 		case 3:
-			// riprende l'esecuzione del programma selezionato
+			// riprende l'esecuzione del processo selezionato
 			retval = kill(pid, SIGCONT);
 			break;
 		
