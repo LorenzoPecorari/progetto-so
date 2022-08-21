@@ -19,10 +19,11 @@ pid_t get_proc_pid(){
 	
 	scanf("%s", buf);
 	
-	if(atoi(buf) < 0){
-		cmd_selected = -2;
+	if(!strcmp("esc", buf))
+		return -2;
+	
+	if(atoi(buf) < 0)
 		return -1;
-		}
 	
 	return (pid_t) atoi(buf);
 }
@@ -51,7 +52,7 @@ int choose_command(int k){
 			quit++;
 			break;
 			
-		case 10:
+		case 10:	// k = '\r' <- terminatore stringa!
 			cmd_selected = -1;
 			break;
 		

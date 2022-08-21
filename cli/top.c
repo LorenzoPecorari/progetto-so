@@ -12,6 +12,7 @@ pid_t pid_victim = 0;
 int fun_selected;
 int k;
 int invalid_choice;
+int sgn = 0;
 
 // restituisce messaggio in caso di errore
 void handle_error(const char* msg){
@@ -29,8 +30,10 @@ void *thread_handler(void *k){
 		
 		*K = fun_selected;
 		
-		if(fun_selected == 10)
+		if(fun_selected == 10){
+			sgn++;
 			break;
+			}
 		
 		}
 	
@@ -54,8 +57,6 @@ void sigalrm_handler(){
 
 		cmd_selected = choose_command(k);
 		
-		//printf("cmd_selected : %d\n", cmd_selected);
-		
 		if(cmd_selected == -2)
 			invalid_choice++;
 		else
@@ -63,15 +64,18 @@ void sigalrm_handler(){
 		
 		if(cmd_selected != 4 && cmd_selected != -1 && !invalid_choice && quit == 0){		
 		
-			const char* str = " > Insert the PID of the process : ";
+			const char* str = " > Insert the PID of the process :\n ";
 			int len = strlen(str);
+			
 			if(write(0, str, len) == -1)
 				handle_error("Errore nella stampa a schermo");
 		
-			pid_victim = get_proc_pid();
-		
-			if(pid_victim != 0 && pid_victim != -1){
-				command_runner(pid_victim, cmd_selected);
+			while((pid_victim = get_proc_pid()) == -1);
+				
+			if((pid_victim != 0 && pid_victim != -1)){
+				if(pid_victim != -2)
+					command_runner(pid_victim, cmd_selected);
+				
 				cmd_selected = -1;
 				}
 		}
@@ -164,12 +168,10 @@ void sort_processes(){
 
 // funzione per il calcolo del modulo (ausiliaria per stampa formattata)
 int mod(int m){
-
 	if(!m)
 		return 1;
 
 	int n = m;
-	
 	int ret = 0; 
 
 	while(n > 0){
@@ -192,9 +194,9 @@ void print_processes(){
 	printf("  #  # # ### \t+-----------------------------------------------------+\n");
 	printf("  #  ### #\n\n");
 	
-	printf(" +-------+--------------------+------------------------+--------+---------+-----------+\n");
-	printf(" |  PID  |        NAME        |        CMD LINE        |  TIME  | RES MEM |  CPU LOAD |\n");
-	printf(" +-------+--------------------+------------------------+--------+---------+-----------+\n");
+	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
+	printf(" |  PID  |     NAME     |        CMD LINE        | STATUS |  TIME  | RES MEM |  CPU LOAD |\n");
+	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
 	
 	for(; i < 10; i++){
 		
@@ -209,11 +211,11 @@ void print_processes(){
 		
 		// stampa del nome del processo
 		printf("| ");
-		if(strlen(procs[i].name) >= 18)
-			printf("%.15s... ", procs[i].name);
+		if(strlen(procs[i].name) >= 12)
+			printf("%.9s... ", procs[i].name);
 		else{
 			printf("%s", procs[i].name);
-			void_spaces = 19 - strlen(procs[i].name);
+			void_spaces = 13 - strlen(procs[i].name);
 			for(j = 0; j < void_spaces; j++)
 				printf(" ");
 		}
@@ -228,6 +230,9 @@ void print_processes(){
 			for(j = 0; j < void_spaces; j++)
 				printf(" ");
 		}
+		
+		// stampa lo stato del processo
+		printf("|   %c    ", procs[i].status);
 		
 		// stampa del tempo d'esecuzione
 		printf("| %ld", procs[i].tot_time);
@@ -251,18 +256,19 @@ void print_processes(){
 		printf("|\n");
 		
 		}	
-	printf(" +-------+--------------------+------------------------+--------+---------+-----------+\n");
-	
-	printf("\n             +-------------------------------------------------+");
-	printf("\n             |                COMANDI DISPONIBILI              |");
-	printf("\n             +-------------------------------------------------+");
-	printf("\n             |    Premere invio per selezionare un'opzione     |");
-	printf("\n             | t -> termina processo    k -> uccide processo   |");
-	printf("\n             | s -> sospende processo   r -> riprende processo |");
-	printf("\n             | q -> chiude il programma e torna alla shell     |");
-	printf("\n             +-------------------------------------------------+\n");
-	
 		
+	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
+	
+	printf("\n             +--------------------------------------------------------+");
+	printf("\n             |                   COMANDI DISPONIBILI                  |");
+	printf("\n             |    (Premere invio per la selezione di un'opzione)      |");
+	printf("\n             +--------------------------------------------------------+");
+	printf("\n             |  [t] -> termina processo      [k] -> uccide processo   |");
+	printf("\n             |  [s] -> sospende processo     [r] -> riprende processo |");
+	printf("\n             |  [q] -> chiude il programma e torna alla shell         |");
+	printf("\n             +--------------------------------------------------------+\n");
+	
+	return;
 }
 
 
@@ -272,13 +278,14 @@ void program_runner(DIR* directory, struct dirent* dir){
 	cmd_selected = -1;
 	
 	char buf;
-	//char buf[4];
 	
-	while(1){
+	while(!quit){
 	
 		k = 0;
 		clean_structures();	
+		
 		pthread_create(&thr, NULL, thread_handler, &k);	
+		
 		directory = opendir(PATH);
 		
 		if(!directory)
@@ -302,31 +309,28 @@ void program_runner(DIR* directory, struct dirent* dir){
 	
 		print_processes();
 	
-		alarm(3);
+		alarm(1);
 		
 		// file descriptor che apre pipe in ascolto su stdin
-		//  ed esegue una sleep di 2s
-		f = popen("sleep 2;", "r");
+		//  ed esegue una sleep di 1s
+		f = popen("sleep 1;", "r");
+
+		pause();
 		
-		/*
-		for(int i = 0; i < 4; i++)
-			buf[i] = '\0';
-		*/
 		buf = '\0';
 	
-		while(fgets(&buf, 4, f));
+		fgets(&buf, 4, f);
 		
 		pthread_cancel(thr);
 		pthread_join(thr, NULL);
 	
 		if(pclose(f) == -1)
 			handle_error("Errore nell'apertura della pipe");
-	
-		pause();
 		
-		if(quit == 1)
-			break;
+		sgn = 0;
+		
 	}	
-				
+	
+	return;			
 }
 

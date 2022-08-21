@@ -21,9 +21,6 @@ void get_memory(){
 	while(read(fd, &buf[i], 1) && i < 32 && buf[i]!=32)
 		i++;
 	
-	while(read(fd, &buf[i], 1) && i < 32 && buf[i]==32)
-		i++;
-	
 	char temp = buf[i];
 	memset(buf, 0, 32);
 	i = 0;
@@ -87,7 +84,7 @@ void get_uptime(struct dirent* dir){
 // analisi stat e statm del processo per ricavarne informazioni
 /*
 	- stats[1] -> nome del processo
-	- stats[4] -> stato del processo
+	- stats[2] -> stato del processo
 	- stats[13] -> tempo in user mode
 	- stats[14] -> tempo in kernel mode
 	- (stats[17]  + stats[18]) -> tempo processi figli
@@ -131,7 +128,7 @@ void get_stat(const char* path_to_stat){
     }
     
 	strcpy(procs[num].name, stats[1]);
-    strcpy(&procs[num].status, stats[4]);
+    strcpy(&procs[num].status, stats[2]);
 	procs[num].utime = atol(stats[13]);
     procs[num].stime = atol(stats[14]);
     procs[num].children_time = atol(stats[15]) + atol(stats[16]);
