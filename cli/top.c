@@ -15,9 +15,14 @@ int invalid_choice;
 int sgn = 0;
 
 // restituisce messaggio in caso di errore
-void handle_error(const char* msg){
-	perror(msg);
-	exit(EXIT_FAILURE);
+void handle_error(const char* msg, int i){
+	printf("%s\n", msg);
+	if(i == 1){
+		pclose(f);
+		pthread_cancel(thr);
+		pthread_join(thr, NULL);
+		exit(EXIT_FAILURE);
+	}
 }
 
 // gestore del thread per la lettura del comando da tastiera
@@ -49,10 +54,10 @@ void sigalrm_handler(){
 		if(k == 10 && !invalid_choice){
 		
 			if(write(0, " > Insert a command : ", strlen(" > Insert a command : ")) == -1)
-				handle_error("Errore di lettura in stdin");
+				handle_error("Errore di scrittura in stdin", 0);
 		
 			if(read(0, (char*) &k, 1) == -1)
-				handle_error("Errore di scrittura in stdin");
+				handle_error("Errore di lettura in stdin", 1);
 		}
 
 		cmd_selected = choose_command(k);
@@ -62,24 +67,8 @@ void sigalrm_handler(){
 		else
 			invalid_choice = 0;
 		
-		if(cmd_selected != 4 && cmd_selected != -1 && !invalid_choice && quit == 0){		
-		
-			const char* str = " > Insert the PID of the process :\n ";
-			int len = strlen(str);
-			
-			if(write(0, str, len) == -1)
-				handle_error("Errore nella stampa a schermo");
-		
-			while((pid_victim = get_proc_pid()) == -1);
-				
-			if((pid_victim != 0 && pid_victim != -1)){
-				if(pid_victim != -2)
-					command_runner(pid_victim, cmd_selected);
-				
-				cmd_selected = -1;
-				}
-		}
-			
+		command_runner(cmd_selected);
+		cmd_selected = -1;
 	}	
 
 }
@@ -91,7 +80,7 @@ void initialize_timer(){
 	int ret = sigaction(SIGALRM, &act, NULL);
 	
 	if(ret == -1)
-		handle_error("Errore nella sigaction");
+		handle_error("Errore nella sigaction", 1);
 }
 
 // azzera le variabile usate dal programma
@@ -112,6 +101,10 @@ void insert_process(struct dirent* d){
 		return;
 	
 	char* path = d->d_name;
+	
+	if(atoi(d->d_name) == pid_victim)
+		return;
+	
     int ptc_len = strlen("/proc") + strlen(d->d_name) + strlen("/cmdline");    
     char path_to_cmdline[ptc_len];
     
@@ -143,135 +136,6 @@ void insert_process(struct dirent* d){
 	return;
 }
 
-// algoritmo bubblesort per ordinamento decrescente per impatto cpu
-void bubblesort(){
-	proc aux = procs[0];
-	int n = num -1;
-	
-	for(int i = 0; i < n-1; i++)
-		for(int j = 0; j < n-1; j++)
-			if(procs[j].load_percentage < procs[j+1].load_percentage){
-			aux = procs[j];
-			procs[j] = procs[j+1];
-			procs[j+1] = aux;
-			}
-	
-	return;
-}
-
-void sort_processes(){
-	// ordinamento dei processi per la stampa
-	bubblesort();
-	return;
-}
-
-
-// funzione per il calcolo del modulo (ausiliaria per stampa formattata)
-int mod(int m){
-	if(!m)
-		return 1;
-
-	int n = m;
-	int ret = 0; 
-
-	while(n > 0){
-		ret++;
-		n = n / 10;
-	}
-
-	return ret;
-}
-
-// stampa i processi (in tabella "formattata")
-void print_processes(){
-	int i = 0;
-	
-	sort_processes();
-	clrscr();
-	
-	printf(" ### ### ###\t+-----------------------------------------------------+\n");
-	printf("  #  # # # # \t| No. processes : %d | Uptime : %.2ld | Load : %.2lf %c |\n", num, uptime, cpu_percentage, '%');
-	printf("  #  # # ### \t+-----------------------------------------------------+\n");
-	printf("  #  ### #\n\n");
-	
-	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
-	printf(" |  PID  |     NAME     |        CMD LINE        | STATUS |  TIME  | RES MEM |  CPU LOAD |\n");
-	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
-	
-	for(; i < 10; i++){
-		
-		int void_spaces = 0;
-		int j;
-		
-		// stampa del pid
-		printf(" | %d", procs[i].pid);
-		void_spaces = 6 - mod(procs[i].pid);
-		for(j = 0; j < void_spaces; j++)
-			printf(" ");
-		
-		// stampa del nome del processo
-		printf("| ");
-		if(strlen(procs[i].name) >= 12)
-			printf("%.9s... ", procs[i].name);
-		else{
-			printf("%s", procs[i].name);
-			void_spaces = 13 - strlen(procs[i].name);
-			for(j = 0; j < void_spaces; j++)
-				printf(" ");
-		}
-		
-		// stampa del percorso
-		printf("| ");
-		if(strlen(procs[i].cmdline) >= 23)
-			printf("%.19s... ", procs[i].cmdline);
-		else{
-			printf("%s", procs[i].cmdline);
-			void_spaces = 23 - strlen(procs[i].cmdline);
-			for(j = 0; j < void_spaces; j++)
-				printf(" ");
-		}
-		
-		// stampa lo stato del processo
-		printf("|   %c    ", procs[i].status);
-		
-		// stampa del tempo d'esecuzione
-		printf("| %ld", procs[i].tot_time);
-		void_spaces = 7 - mod(procs[i].tot_time);
-		for(j = 0; j < void_spaces; j++)
-			printf(" ");
-		
-		// stampa della memoria "effettiva" occupata
-		printf("| %ld", procs[i].mem_usage);
-		void_spaces = 8 - mod(procs[i].mem_usage);
-		for(j = 0; j < void_spaces; j++)
-			printf(" ");
-		
-		// stampa del carico sulla cpu
-		printf("| %.2lf %c", procs[i].load_percentage, '%');
-		void_spaces=0;
-		void_spaces = 5 - mod((int) procs[i].load_percentage);
-		for(j = 0; j < void_spaces; j++)
-			printf(" ");
-		
-		printf("|\n");
-		
-		}	
-		
-	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
-	
-	printf("\n             +--------------------------------------------------------+");
-	printf("\n             |                   COMANDI DISPONIBILI                  |");
-	printf("\n             |    (Premere invio per la selezione di un'opzione)      |");
-	printf("\n             +--------------------------------------------------------+");
-	printf("\n             |  [t] -> termina processo      [k] -> uccide processo   |");
-	printf("\n             |  [s] -> sospende processo     [r] -> riprende processo |");
-	printf("\n             |  [q] -> chiude il programma e torna alla shell         |");
-	printf("\n             +--------------------------------------------------------+\n");
-	
-	return;
-}
-
-
 // funzione che esegue e gestisce il programma principale
 void program_runner(DIR* directory, struct dirent* dir){	
 	initialize_timer();
@@ -282,19 +146,19 @@ void program_runner(DIR* directory, struct dirent* dir){
 	while(!quit){
 	
 		k = 0;
-		clean_structures();	
+		clean_structures();
 		
 		pthread_create(&thr, NULL, thread_handler, &k);	
 		
 		directory = opendir(PATH);
 		
 		if(!directory)
-			handle_error("Errore della opendir del main");
+			handle_error("Errore della opendir del main", 0);
 		
 		dir = readdir(directory);
 			
 		if(!dir)
-			handle_error("Errore nel pasaggio di dir dal main");
+			handle_error("Errore nel pasaggio di dir dal main", 0);
 		
 		get_uptime(dir);
 		get_memory();
@@ -305,7 +169,7 @@ void program_runner(DIR* directory, struct dirent* dir){
 		}
 			
 		if(closedir(directory) == -1)
-			handle_error("Errore nella chiusura della cartella dal main");
+			handle_error("Errore nella chiusura della cartella dal main", 0);
 	
 		print_processes();
 	
@@ -325,7 +189,7 @@ void program_runner(DIR* directory, struct dirent* dir){
 		pthread_join(thr, NULL);
 	
 		if(pclose(f) == -1)
-			handle_error("Errore nell'apertura della pipe");
+			handle_error("Errore nell'apertura della pipe", 1);
 		
 		sgn = 0;
 		

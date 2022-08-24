@@ -14,7 +14,7 @@
 
 #define PATH "/proc"
 #define NAME_SIZE 64
-#define MAX_PROCESSES 2048
+#define MAX_PROCESSES 32768
 #define BUF_SIZE 128
 
 /*  MACRO PER SETTING FINESTRA */
@@ -50,10 +50,11 @@ extern FILE *f;
 extern int cmd_selected;
 extern int quit;
 extern pid_t pid_victim;
+extern int table_rows;
 
 /* MARCATURE FUNZIONI */
 // gestione errori
-void handle_error(const char* msg);
+void handle_error(const char* msg, int i);
 
 // gestione timer
 void initialize_timer();
@@ -68,13 +69,16 @@ void get_stat(const char* path_to_stat);
 void get_statm(const char* path_to_statm);
 void get_stats(const char* path);
 void get_cmdline(const char* directory, char buf[]);
-void sort_processes();
-void bubblesort();
-void print_processes();
 void program_runner(DIR* directory, struct dirent* dir);
+
+// stampa a schermo e gestione tabellare strutture processi
+void select_sorting();
+void bubblesort();
+int select_procs_to_print();
+void print_processes();
 
 // manipolazione processi
 pid_t get_proc_pid();
 int choose_command(int k);
-int command_runner(pid_t pid, int command);
+int command_runner(int command);
 

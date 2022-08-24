@@ -12,7 +12,7 @@ void get_memory(){
 	char path[] = "/proc/meminfo";
 	int fd;
 	if(!(fd = open(path, O_RDONLY, 0666)))
-		handle_error("Errore nell'apertura di fd per meminfo");
+		handle_error("Errore nell'apertura di fd per meminfo", 1);
 		
 	char buf[32];
 	memset(buf, 0, 32);
@@ -38,7 +38,7 @@ void get_memory(){
 // rimuove le parentesi dal nome preso da stat
 void remove_parenthesis(char* s){
 	if(!s)
-		handle_error("Riferimento nullo a stringa");
+		handle_error("Riferimento nullo a stringa", 0);
 		
 	int len = strlen(s);
 	
@@ -54,13 +54,13 @@ void remove_parenthesis(char* s){
 // ottiene il valore uptime di /proc
 void get_uptime(struct dirent* dir){
     if(!dir)
-        handle_error("Errore nel passaggio del puntatore alla diretory");
+        handle_error("Errore nel passaggio del puntatore alla diretory", 1);
 
     const char* string_file = "/proc/uptime";
    
     int fd;
     if(!(fd = open(string_file, O_RDONLY, 0666)))
-        handle_error("Errore nell'apertura di fd per uptime");
+        handle_error("Errore nell'apertura di fd per uptime", 1);
     
     char time[16];
     int s = 0;
@@ -76,7 +76,7 @@ void get_uptime(struct dirent* dir){
     uptime = atol	(time);  
 
     if(close(fd) == -1)
-        handle_error("Errore nella chiusura di uptime");
+        handle_error("Errore nella chiusura di uptime", 0);
         
     return;
 }
@@ -99,7 +99,7 @@ void get_stat(const char* path_to_stat){
 	int fd, i, idx, inner_idx;
     
     if((fd = open(path_to_stat, O_RDONLY, 0666)) == -1)
-        handle_error("Errore nell'apertura di fd per stat");    
+        handle_error(strcat((char*) path_to_stat, "Errore nell'apertura di fd per stat"), 1);  
 
     char stats[64][32];
     char temp;
@@ -124,7 +124,7 @@ void get_stat(const char* path_to_stat){
     }
     
     if(close(fd) == -1){
-    	handle_error("Errore nella chiusura di fd per stat");
+    	handle_error("Errore nella chiusura di fd per stat", 1);
     }
     
 	strcpy(procs[num].name, stats[1]);
@@ -145,8 +145,8 @@ void get_stat(const char* path_to_stat){
 void get_statm(const char* path_to_statm){
 	int fd, i, idx, inner_idx;
 	
-    if((fd = open(path_to_statm, O_RDONLY, 0666)) == -1){
-        handle_error("Errore nell'apertura di fd per statm");   
+    while((fd = open(path_to_statm, O_RDONLY, 0666)) == -1){
+        handle_error("Errore nell'apertura di fd per statm", 0);   
 	}
 	
 	char temp;
@@ -172,7 +172,7 @@ void get_statm(const char* path_to_statm){
     }
 
 	if(close(fd) == -1)
-		handle_error("Errore nella chiusura di fd per statm");
+		handle_error("Errore nella chiusura di fd per statm", 0);
     
     procs[num].mem_usage = atol(statm[1]);
 
@@ -181,7 +181,9 @@ void get_statm(const char* path_to_statm){
 
 void get_stats(const char* path){
 	if(!path)
-		handle_error("Errore nel passaggio del percorso");
+		handle_error("Errore nel passaggio del percorso", 1);
+		
+	//printf("path : %s\n", path);
 		
 	int path_size = 32;
 	char path_to_stat[path_size];
@@ -213,11 +215,11 @@ void get_stats(const char* path){
 // ottiene cmdline di singolo processo
 void get_cmdline(const char* directory, char buf[]){
 	if(!directory)
-		handle_error("Cartella errata");
+		handle_error("Cartella errata", 1);
 
 	int fd = open(directory, O_RDONLY, 0640);
 	if(!fd)
-		handle_error("File descriptor errato");
+		handle_error("File descriptor errato", 1);
 
 	int size = 0;
 
@@ -225,7 +227,7 @@ void get_cmdline(const char* directory, char buf[]){
 	    size++;
 
     if(close(fd) == -1)
-        handle_error("Errore nella chiusura della cmdline");
+        handle_error(strcat((char*) directory, " - Errore nella chiusura della cmdline"), 0);
 
     return;
 }

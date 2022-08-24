@@ -1,5 +1,5 @@
-OBJS	= top.o gets.o commands.o test_top.o
-SOURCE	= top.c gets.c commands.c test_top.c
+OBJS	= top.o gets.o commands.o test_top.o print.o
+SOURCE	= top.c gets.c commands.c test_top.c print.c
 HEADER	= top.h
 OUT	= test_top
 CC	 = gcc
@@ -17,6 +17,9 @@ commands.o: commands.c
 
 gets.o: gets.c
 	$(CC) $(FLAGS) gets.c
+	
+print.o: print.c
+	$(CC) $(FLAGS) print.c
 
 test_top.o: test_top.c
 	$(CC) $(FLAGS) test_top.c 
