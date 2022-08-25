@@ -13,7 +13,7 @@ int sigs[4] = {SIGTERM, SIGKILL, SIGSTOP, SIGCONT};
 	cmd_selected = 4 -> bubblesort of processes (increasing or decreasing)
 	cmd_selected = 5 -> select number of rows to print
 	
-	cmd_selected = 5 -> quit (from the main program!)
+	cmd_selected = 6 -> quit (from the main program!)
 	
 	cmd_selected = -1 -> do nothing, clean and update the window
 	cmd_selected = -2 -> invalid command
@@ -22,6 +22,12 @@ int sigs[4] = {SIGTERM, SIGKILL, SIGSTOP, SIGCONT};
 // ottiene il valore del pid del processo da manipolare
 pid_t get_proc_pid(){
 
+	const char* str = " > Insert the PID of the process : ";
+	int len = strlen(str);
+			
+	if(write(0, str, len) == -1)
+		handle_error("Errore nella stampa a schermo", 0);
+		
 	char buf[8];
 	memset(buf, '\0', 8);
 	
@@ -87,11 +93,6 @@ int command_runner(int command){
 	int retval = 0;
 
 	if(((command >= 0) && (command <=3))){
-		const char* str = " > Insert the PID of the process :\n ";
-		int len = strlen(str);
-			
-		if(write(0, str, len) == -1)
-			handle_error("Errore nella stampa a schermo", 0);
 		
 		while((pid_victim = get_proc_pid()) == -1);
 				

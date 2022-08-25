@@ -2,11 +2,38 @@
 
 int sort = 0;
 int table_rows = 10;
+int sorting_mode = 3;
 
+// permette di selezionare ordinamento processi secondo parametri
 void select_sorting(){
+	char s_type[5];
 	char choice[2];
-	const char* str = " > Decreasing or increasing sorting? [d/i] : ";
+	
+	memset(s_type, '\0', 5);
+	memset(choice, '\0', 2);
+	
+	char* str = " > Sorting type [pid/name/mem/cpu] : ";
 	int len = strlen(str);
+	
+	if(write(0, str, len) == -1)
+		handle_error("Errore durante la scrittura in stdin", 0);
+	
+	scanf("%s", s_type);
+	
+	if(!strcmp("esc", s_type))
+		return;
+	
+	if(!strcmp("pid", s_type))
+		sorting_mode = 0;
+	else if(!strcmp("name", s_type))
+		sorting_mode = 1;
+	else if(!strcmp("mem", s_type))
+		sorting_mode = 2;
+	else if(!strcmp("cpu", s_type))
+		sorting_mode = 3;
+	
+	str = " > Decreasing or increasing sorting? [d/i] : ";
+	len = strlen(str);
 	
 	if(write(0, str, len) == -1)
 		handle_error("Errore durante la scrittura in stdin", 0);
@@ -29,31 +56,103 @@ void bubblesort(){
 	proc aux = procs[0];
 	int n;
 	
-	if(sort == 0){
-		n = num -1;
-		for(int i = 0; i < n-1; i++)
-			for(int j = 0; j < n-1; j++)
-				if(procs[j].load_percentage < procs[j+1].load_percentage){
-				aux = procs[j];
-				procs[j] = procs[j+1];
-				procs[j+1] = aux;
-				}
-		}
-	else if(sort == 1){
-		n = num -1;
-		for(int i = 0; i < n-1; i++)
-			for(int j = 0; j < n-1; j++)
-				if(procs[j].load_percentage > procs[j+1].load_percentage){
-				aux = procs[j];
-				procs[j] = procs[j+1];
-				procs[j+1] = aux;
-				}
-		}
+	if(sorting_mode == 0){
+		if(sort == 0){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].pid < procs[j+1].pid){
+					aux = procs[j];
+					procs[j] = procs[j+1];
+					procs[j+1] = aux;
+					}
+			}
+		else if(sort == 1){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].pid > procs[j+1].pid){
+					aux = procs[j];
+					procs[j] = procs[j+1];
+					procs[j+1] = aux;
+					}
+			}
+	}
+	
+	else if(sorting_mode == 1){
+		if(sort == 0){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(strcmp(procs[j].name, procs[j+1].name) < 0){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+		else if(sort == 1){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(strcmp(procs[j].name, procs[j+1].name) > 0){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+	}
+	
+	else if(sorting_mode == 2){
+		if(sort == 0){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].mem_usage < procs[j+1].mem_usage){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+		else if(sort == 1){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].mem_usage > procs[j+1].mem_usage){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+	}
+	
+	else if(sorting_mode == 3){
+		if(sort == 0){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].load_percentage < procs[j+1].load_percentage){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+		else if(sort == 1){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].load_percentage > procs[j+1].load_percentage){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+	}
+	
 	return;
 }
 
 // funzione per il calcolo del modulo (ausiliaria per stampa formattata)
-int mod(int m){
+int mod(long int m){
 	if(!m)
 		return 1;
 
@@ -68,6 +167,7 @@ int mod(int m){
 	return ret;
 }
 
+// selezione numero di processi da visualizzare in stampa
 int select_procs_to_print(){
 	char input[6];
 	memset(input, '\0', 6);
@@ -87,6 +187,7 @@ int select_procs_to_print(){
 	return -1;
 }
 
+// stampa della tabella con i processi
 void print_table(){
 
 	for(int i = 0; i < table_rows; i++){
@@ -133,7 +234,7 @@ void print_table(){
 		
 		// stampa della memoria "effettiva" occupata
 		printf("| %ld", procs[i].mem_usage);
-		void_spaces = 8 - mod(procs[i].mem_usage);
+		void_spaces = 14 - mod(procs[i].mem_usage);
 		for(j = 0; j < void_spaces; j++)
 			printf(" ");
 		
@@ -162,23 +263,23 @@ void print_processes(){
 	printf("  #  # # ### \t+-----------------------------------------------------+\n");
 	printf("  #  ### #\n\n");
 	
-	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
-	printf(" |  PID  |     NAME     |        CMD LINE        | STATUS |  TIME  | RES MEM |  CPU LOAD |\n");
-	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
+	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
+	printf(" |  PID  |     NAME     |        CMD LINE        | STATUS |  TIME  |    RES MEM    |  CPU LOAD |\n");
+	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
 	
 	print_table();
 		
-	printf(" +-------+--------------+------------------------+--------+--------+---------+-----------+\n");
+	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
 	
-	printf("\n             +--------------------------------------------------------+");
-	printf("\n             |                   COMANDI DISPONIBILI                  |");
-	printf("\n             |    (Premere invio per la selezione di un'opzione)      |");
-	printf("\n             +--------------------------------------------------------+");
-	printf("\n             |  [t] -> termina processo      [k] -> uccide processo   |");
-	printf("\n             |  [s] -> sospende processo     [r] -> riprende processo |");
-	printf("\n             |  [b] -> ordina i processi     [p] -> stampa i processi |");
-	printf("\n             |  [q] -> chiude il programma e torna alla shell         |");
-	printf("\n             +--------------------------------------------------------+\n");
+	printf("\n             +---------------------------------------------------------+");
+	printf("\n             |                    AVAILABLES COMMANDS                  |");
+	printf("\n             |              (Press enter to select a command)          |");
+	printf("\n             +---------------------------------------------------------+");
+	printf("\n             |  [t] -> terminates process   [k] -> kills process       |");
+	printf("\n             |  [s] -> suspends process     [r] -> resumes process     |");
+	printf("\n             |  [b] -> sorts processes      [p] -> prints processes    |");
+	printf("\n             |  [q] -> closes the program and returns to the shell     |");
+	printf("\n             +---------------------------------------------------------+\n");
 	
 	return;
 }

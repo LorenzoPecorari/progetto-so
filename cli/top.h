@@ -19,7 +19,7 @@
 
 /*  MACRO PER SETTING FINESTRA */
 #define clrscr() printf("\e[1;1H\e[2J");
-#define resize_scr() printf("\e[8;31;90t\n");
+#define resize_scr() printf("\e[8;31;99t\n");
 
 // struttura per processo
 typedef struct proc{
