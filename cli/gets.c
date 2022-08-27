@@ -232,3 +232,29 @@ void get_cmdline(const char* directory, char buf[]){
     return;
 }
 
+void get_process_info(proc* p, pid_t pid){
+	int i = 0;
+	
+	while(i < num && procs[i].pid != pid)
+		i++;
+		
+	printf("num : %d --- i : %d\n", num, i);
+		
+	if(i == num && procs[num].pid != pid)
+		return;
+	
+	p->pid = procs[i].pid;
+	strcpy(p->name, procs[i].name);
+	strcpy(p->cmdline, procs[i].cmdline);
+	p->status = procs[i].status;
+	p->starttime = procs[i].starttime;
+	p->utime = procs[i].utime;
+	p->stime = procs[i].stime;
+	p->children_time = procs[i].children_time;
+	p->tot_time = procs[i].tot_time;
+	p->mem_usage = procs[i].mem_usage;
+	p->load_percentage = procs[i].load_percentage;
+	
+	return;
+}
+

@@ -1,6 +1,7 @@
 #include "top.h"
 
 int sigs[4] = {SIGTERM, SIGKILL, SIGSTOP, SIGCONT};
+char* infos = "";
 
 // legenda dei comandi selezionabili dall'utente
 /*
@@ -20,7 +21,7 @@ int sigs[4] = {SIGTERM, SIGKILL, SIGSTOP, SIGCONT};
 */
 
 // ottiene il valore del pid del processo da manipolare
-pid_t get_proc_pid(){
+pid_t get_proc_pid(proc* p){
 
 	const char* str = " > Insert the PID of the process : ";
 	int len = strlen(str);
@@ -39,6 +40,8 @@ pid_t get_proc_pid(){
 	if(atoi(buf) < 0)
 		return -1;
 	
+	get_process_info(p, (pid_t) (atoi(buf)));
+	
 	return (pid_t) atoi(buf);
 }
 
@@ -47,18 +50,22 @@ int choose_command(int k){
 	switch(k){
 		case 116: 	// k = 't'
 			cmd_selected = 0;
+			infos = "terminated";
 			break;
 		
 		case 107: 	// k = 'k'
 			cmd_selected = 1;
+			infos = "killed";
 			break;
 	
 		case 115:	// k = 's'
 			cmd_selected = 2;
+			infos = "suspended";
 			break;
 		
 		case 114:	// k = 'r'
 			cmd_selected = 3;
+			infos = "resumed";
 			break;
 			
 		case 98:	// k = 'b'
@@ -91,10 +98,11 @@ int choose_command(int k){
 int command_runner(int command){
 
 	int retval = 0;
+	proc tbf = {0};
 
 	if(((command >= 0) && (command <=3))){
 		
-		while((pid_victim = get_proc_pid()) == -1);
+		while((pid_victim = get_proc_pid(&tbf)) == -1);
 				
 		if((pid_victim != 0 && pid_victim != -1))
 			if(pid_victim != -2)
@@ -112,7 +120,8 @@ int command_runner(int command){
 		
 			return -1;
 		}
-
+		else
+			print_process_info(tbf, infos);
 	}
 	
 	else if(command == 4)

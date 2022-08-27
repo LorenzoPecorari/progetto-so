@@ -264,7 +264,7 @@ void print_processes(){
 	printf("  #  ### #\n\n");
 	
 	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
-	printf(" |  PID  |     NAME     |        CMD LINE        | STATUS |  TIME  |    RES MEM    |  CPU LOAD |\n");
+	printf(" |  PID  |     NAME     |          PATH          | STATUS |  TIME  |    RES MEM    |  CPU LOAD |\n");
 	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
 	
 	print_table();
@@ -283,4 +283,15 @@ void print_processes(){
 	
 	return;
 }
+
+void print_process_info(proc p, char* info){
+	printf(" PROCESS %d ---> %s\n", p.pid, info);
+	printf("  Name : %s\n", p.name);
+	printf("  Path : %s\n", p.cmdline);
+	printf("  Times :\n   %llu (start)\n   %lu (user)\n   %lu (system)\n   %lu (children)\n", p.starttime, p.utime, p.stime, p.children_time);
+	printf("  Total time : %lu\n", p.tot_time);
+	sleep(5);
+	return;
+}
+	
 

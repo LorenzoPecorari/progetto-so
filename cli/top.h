@@ -34,7 +34,6 @@ typedef struct proc{
 	long unsigned tot_time;
 	long unsigned mem_usage;
     double load_percentage;
-    float mem_percentage;
 } proc;
 
 /* VARIABILI GLOBALI*/
@@ -69,6 +68,7 @@ void get_stat(const char* path_to_stat);
 void get_statm(const char* path_to_statm);
 void get_stats(const char* path);
 void get_cmdline(const char* directory, char buf[]);
+void get_process_info(proc* p, pid_t pid);
 void program_runner(DIR* directory, struct dirent* dir);
 
 // stampa a schermo e gestione tabellare strutture processi
@@ -76,6 +76,7 @@ void select_sorting();
 void bubblesort();
 int select_procs_to_print();
 void print_processes();
+void print_process_info(proc p, char* info);
 
 // manipolazione processi
 pid_t get_proc_pid();
