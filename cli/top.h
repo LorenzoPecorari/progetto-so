@@ -69,6 +69,9 @@ void get_statm(const char* path_to_statm);
 void get_stats(const char* path);
 void get_cmdline(const char* directory, char buf[]);
 void get_process_info(proc* p, pid_t pid);
+proc* get_process_from_pid(pid_t pid);
+proc* get_process_from_name(const char* name);
+void find_process();
 void program_runner(DIR* directory, struct dirent* dir);
 
 // stampa a schermo e gestione tabellare strutture processi
@@ -82,4 +85,6 @@ void print_process_info(proc p, char* info);
 pid_t get_proc_pid();
 int choose_command(int k);
 int command_runner(int command);
+
+void waiting();
 

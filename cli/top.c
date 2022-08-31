@@ -11,7 +11,6 @@ pid_t pid_victim = 0;
 //variabili ausiliarie
 int fun_selected;
 int k;
-int invalid_choice;
 int sgn = 0;
 
 // restituisce messaggio in caso di errore
@@ -23,6 +22,21 @@ void handle_error(const char* msg, int i){
 		pthread_join(thr, NULL);
 		exit(EXIT_FAILURE);
 	}
+}
+
+void waiting(){
+	char enter = 0;
+	const char* str = " Press enter to continue ";
+	write(0, str, strlen(str));
+		
+	while(read(0, &enter, 1)!= -1 && enter == 0){
+		if(enter == 10)
+			break;
+		else
+			enter = 0;
+	}
+	
+	return;
 }
 
 // gestore del thread per la lettura del comando da tastiera
@@ -51,21 +65,25 @@ void sigalrm_handler(){
 
 	if(k != 0){
 			
-		if(k == 10 && !invalid_choice){
+		if(k == 10){
 		
 			if(write(0, " > Insert a command : ", strlen(" > Insert a command : ")) == -1)
 				handle_error("Errore di scrittura in stdin", 0);
 		
-			if(read(0, (char*) &k, 1) == -1)
-				handle_error("Errore di lettura in stdin", 1);
+			char buf[32];
+			scanf("%s", buf);
+			
+			if(strlen(buf) > 1){
+				write(0, " Invalid command!\n", strlen("Invalid command\n"));
+				return;
+				}
+				
+			else
+				k = buf[0];
+		
 		}
 
 		cmd_selected = choose_command(k);
-		
-		if(cmd_selected == -2)
-			invalid_choice++;
-		else
-			invalid_choice = 0;
 		
 		command_runner(cmd_selected);
 		cmd_selected = -1;
@@ -101,9 +119,6 @@ void insert_process(struct dirent* d){
 		return;
 	
 	char* path = d->d_name;
-	
-	if(atoi(d->d_name) == pid_victim)
-		return;
 	
     int ptc_len = strlen("/proc") + strlen(d->d_name) + strlen("/cmdline");    
     char path_to_cmdline[ptc_len];

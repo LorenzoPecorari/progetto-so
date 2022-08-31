@@ -13,37 +13,13 @@ char* infos = "";
 	
 	cmd_selected = 4 -> bubblesort of processes (increasing or decreasing)
 	cmd_selected = 5 -> select number of rows to print
+	cmd_selected = 6 -> search a process (from pid or name)
 	
-	cmd_selected = 6 -> quit (from the main program!)
+	cmd_selected = 7 -> quit (from the main program!)
 	
 	cmd_selected = -1 -> do nothing, clean and update the window
 	cmd_selected = -2 -> invalid command
 */
-
-// ottiene il valore del pid del processo da manipolare
-pid_t get_proc_pid(proc* p){
-
-	const char* str = " > Insert the PID of the process : ";
-	int len = strlen(str);
-			
-	if(write(0, str, len) == -1)
-		handle_error("Errore nella stampa a schermo", 0);
-		
-	char buf[8];
-	memset(buf, '\0', 8);
-	
-	scanf("%s", buf);
-	
-	if(!strcmp("esc", buf))
-		return -2;
-	
-	if(atoi(buf) < 0)
-		return -1;
-	
-	get_process_info(p, (pid_t) (atoi(buf)));
-	
-	return (pid_t) atoi(buf);
-}
 
 // sceglie il comando desiderato
 int choose_command(int k){
@@ -72,12 +48,16 @@ int choose_command(int k){
 			cmd_selected = 4;
 			break;
 
-		case 112:
+		case 112:	// k = 'p'
 			cmd_selected = 5;
 			break;			
-
-		case 113:	// k = 'q'
+			
+		case 102:	// k = 'f'
 			cmd_selected = 6;
+			break;			
+				
+		case 113:	// k = 'q'
+			cmd_selected = 7;
 			quit++;
 			break;
 			
@@ -101,7 +81,6 @@ int command_runner(int command){
 	proc tbf = {0};
 
 	if(((command >= 0) && (command <=3))){
-		
 		while((pid_victim = get_proc_pid(&tbf)) == -1);
 				
 		if((pid_victim != 0 && pid_victim != -1))
@@ -121,21 +100,26 @@ int command_runner(int command){
 			return -1;
 		}
 		else
-			print_process_info(tbf, infos);
+			if(pid_victim == tbf.pid)
+				print_process_info(tbf, infos);
 	}
 	
 	else if(command == 4)
-			select_sorting();
+		select_sorting();
 	
 	else if(command == 5)
 		table_rows = select_procs_to_print();
 
 	else if(command == 6){
-		
+		find_process();
 	}
-	
-	if(command == -1)
-		printf("Invalid command, choose it among those available!\n");
+
+	if(command == -2){
+		const char* str = " > Invalid command, choose it among those available!\n";
+		int len = strlen(str);
+		write(0, str, len);
+		waiting();
+		}
 	
 	return 1;
 }

@@ -12,7 +12,7 @@ void select_sorting(){
 	memset(s_type, '\0', 5);
 	memset(choice, '\0', 2);
 	
-	char* str = " > Sorting type [pid/name/mem/cpu] : ";
+	char* str = " > Sorting type [pid/name/mem/time/cpu] : ";
 	int len = strlen(str);
 	
 	if(write(0, str, len) == -1)
@@ -29,8 +29,10 @@ void select_sorting(){
 		sorting_mode = 1;
 	else if(!strcmp("mem", s_type))
 		sorting_mode = 2;
-	else if(!strcmp("cpu", s_type))
+	else if(!strcmp("time", s_type))
 		sorting_mode = 3;
+	else if(!strcmp("cpu", s_type))
+		sorting_mode = 4;
 	
 	str = " > Decreasing or increasing sorting? [d/i] : ";
 	len = strlen(str);
@@ -44,9 +46,7 @@ void select_sorting(){
 		sort = 0;
 	else if(choice[0] == 'i')
 		sort = 1;
-	
-	//else
-	//	non cambia nulla!
+
 	return;
 	
 }
@@ -126,6 +126,29 @@ void bubblesort(){
 	}
 	
 	else if(sorting_mode == 3){
+		if(sort == 0){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].tot_time < procs[j+1].tot_time){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+		else if(sort == 1){
+			n = num -1;
+			for(int i = 0; i < n-1; i++)
+				for(int j = 0; j < n-1; j++)
+					if(procs[j].tot_time > procs[j+1].tot_time){
+						aux = procs[j];
+						procs[j] = procs[j+1];
+						procs[j+1] = aux;
+					}
+			}
+	}
+	
+	else if(sorting_mode == 4){
 		if(sort == 0){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
@@ -234,7 +257,7 @@ void print_table(){
 		
 		// stampa della memoria "effettiva" occupata
 		printf("| %ld", procs[i].mem_usage);
-		void_spaces = 14 - mod(procs[i].mem_usage);
+		void_spaces = 13 - mod(procs[i].mem_usage);
 		for(j = 0; j < void_spaces; j++)
 			printf(" ");
 		
@@ -263,13 +286,13 @@ void print_processes(){
 	printf("  #  # # ### \t+-----------------------------------------------------+\n");
 	printf("  #  ### #\n\n");
 	
-	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
-	printf(" |  PID  |     NAME     |          PATH          | STATUS |  TIME  |    RES MEM    |  CPU LOAD |\n");
-	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
+	printf(" +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
+	printf(" |  PID  |     NAME     |          PATH          | STATUS |  TIME  |    RES MEM   |  CPU LOAD |\n");
+	printf(" +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
 	
 	print_table();
 		
-	printf(" +-------+--------------+------------------------+--------+--------+---------------+-----------+\n");
+	printf(" +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
 	
 	printf("\n             +---------------------------------------------------------+");
 	printf("\n             |                    AVAILABLES COMMANDS                  |");
@@ -278,20 +301,143 @@ void print_processes(){
 	printf("\n             |  [t] -> terminates process   [k] -> kills process       |");
 	printf("\n             |  [s] -> suspends process     [r] -> resumes process     |");
 	printf("\n             |  [b] -> sorts processes      [p] -> prints processes    |");
-	printf("\n             |  [q] -> closes the program and returns to the shell     |");
+	printf("\n             |  [f] -> search a process     [q] -> closes the program  |");
 	printf("\n             +---------------------------------------------------------+\n");
 	
 	return;
 }
 
 void print_process_info(proc p, char* info){
-	printf(" PROCESS %d ---> %s\n", p.pid, info);
-	printf("  Name : %s\n", p.name);
-	printf("  Path : %s\n", p.cmdline);
-	printf("  Times :\n   %llu (start)\n   %lu (user)\n   %lu (system)\n   %lu (children)\n", p.starttime, p.utime, p.stime, p.children_time);
-	printf("  Total time : %lu\n", p.tot_time);
-	sleep(5);
+
+	int m = 0;
+	int j;
+
+	printf("    +------------+-----------------------+\n");
+	printf("    |  PROCESS   | %d", p.pid);	
+	
+	m = 8 - mod(p.pid);
+	for(j = 0; j < m; j++)
+		printf(" ");
+	
+	printf("(%s)", info);
+	m = 12 - strlen(info);
+	for(j = 0; j < m; j++)
+		printf(" ");
+	printf("|\n");
+	
+	printf("    +------------+-----------------------+\n");
+	printf("    |    Name    |");
+	
+	m = strlen(p.name);
+	if(m >= 22)
+		printf("%.19s... ", p.name);
+	else{
+		printf(" %s", p.name);
+		m = 22 - m;
+		for(j = 0; j < m; j++)
+			printf(" ");
+	}
+	printf("|\n");
+	
+	printf("    +------------+-----------------------+\n");
+	printf("    |    Path    |");
+	
+	m = strlen(p.cmdline);
+	if(m >= 21)
+		printf("%.18s... ", p.cmdline);
+	else{
+		printf(" %s", p.cmdline);
+		m = 21 - m;
+		for(j = 0; j < m; j++)
+			printf(" ");
+	}
+	
+	printf(" |\n");
+	printf("    +------------+-----------------------+\n");
+	printf("    |    Time    |");
+	
+	m = mod(p.starttime);
+	if(m > 10){
+		char converted[7];
+		int div = 10;
+		for(int i = 0; i < (m - 7); i++)
+			div = 10 * div;
+		
+		sprintf(converted, "%d", (int)(p.starttime/(div)));
+		printf("%s... ", converted);
+	}
+	else{
+		printf(" %llu", p.starttime);
+		m = 9 - m;
+		for(j = 0; j < m; j++)
+			printf(" ");
+		}
+	
+	printf(" (starttime) |\n");
+	printf("    |            |");
+	
+	m = mod(p.stime);
+	if(m > 10){
+		char converted[7];
+		int div = 10;
+		for(int i = 0; i < (m - 7); i++)
+			div = 10 * div;
+		
+		sprintf(converted, "%d", (int)(p.stime/(div)));
+		printf("%s... ", converted);
+	}
+	else{
+		printf(" %lu", p.stime);
+		m = 9 - m;
+		for(j = 0; j < m; j++)
+			printf(" ");
+		}
+	
+	printf(" (system)    |\n");
+	printf("    |            |");
+	
+	m = mod(p.utime);
+	if(m > 10){
+		char converted[7];
+		int div = 10;
+		for(int i = 0; i < (m - 7); i++)
+			div = 10 * div;
+		
+		sprintf(converted, "%d", (int)(p.utime/(div)));
+		printf("%s... ", converted);
+	}
+	else{
+		printf(" %lu", p.utime);
+		m = 9 - m;
+		for(j = 0; j < m; j++)
+			printf(" ");
+		}
+		
+	printf(" (user)      |\n");
+	printf("    |            |");
+	
+	m = mod(p.tot_time);
+	if(m > 10){
+		char converted[7];
+		int div = 10;
+		for(int i = 0; i < (m - 7); i++)
+			div = 10 * div;
+		
+		sprintf(converted, "%d", (int)(p.tot_time/(div)));
+		printf("%s... ", converted);
+	}
+	else{
+		printf(" %lu", p.tot_time);
+		m = 9 - m;
+		for(j = 0; j < m; j++)
+			printf(" ");
+		}
+		
+	printf(" (total)     |\n");
+	printf("    +------------+-----------------------+\n");
+	
+	waiting();
+
 	return;
 }
 	
-
