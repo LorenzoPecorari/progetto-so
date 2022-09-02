@@ -27,7 +27,7 @@ void handle_error(const char* msg, int i){
 void waiting(){
 	char enter = 0;
 	const char* str = " Press enter to continue ";
-	write(0, str, strlen(str));
+	write(1, str, strlen(str));
 		
 	while(read(0, &enter, 1)!= -1 && enter == 0){
 		if(enter == 10)
@@ -67,14 +67,14 @@ void sigalrm_handler(){
 			
 		if(k == 10){
 		
-			if(write(0, " > Insert a command : ", strlen(" > Insert a command : ")) == -1)
+			if(write(1, " > Insert a command : ", strlen(" > Insert a command : ")) == -1)
 				handle_error("Errore di scrittura in stdin", 0);
 		
 			char buf[32];
 			scanf("%s", buf);
 			
 			if(strlen(buf) > 1){
-				write(0, " Invalid command!\n", strlen("Invalid command\n"));
+				write(1, " Invalid command!\n", strlen("Invalid command\n"));
 				return;
 				}
 				

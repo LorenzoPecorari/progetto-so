@@ -73,7 +73,7 @@ void get_uptime(struct dirent* dir){
     while(read(fd, &time[s], 1) && s < 16)
         s++;
 
-    uptime = atol	(time);  
+    uptime = atol(time);  
 
     if(close(fd) == -1)
         handle_error("Errore nella chiusura di uptime", 0);
@@ -89,7 +89,7 @@ void get_uptime(struct dirent* dir){
 	- stats[14] -> tempo in kernel mode
 	- (stats[17]  + stats[18]) -> tempo processi figli
 	- stats[21] -> tempo di start
-	- stats[24] -> tempo avvio processo dopo avvio os
+	- stats[24] -> resident memory
 	- statm[0] -> totale memoria virtuale del processo
 	- statm[1] -> memoria processo residente nella ram
 */
@@ -231,13 +231,33 @@ void get_cmdline(const char* directory, char buf[]){
     return;
 }
 
+void process_info_cpy(proc* p, int index){
+
+	if(p == 0 || index > num || index < 1)
+		return;
+		
+	p->pid = procs[index].pid;
+	strcpy(p->name, procs[index].name);
+	strcpy(p->cmdline, procs[index].cmdline);
+	p->status = procs[index].status;
+	p->starttime = procs[index].starttime;
+	p->utime = procs[index].utime;
+	p->stime = procs[index].stime;
+	p->children_time = procs[index].children_time;
+	p->tot_time = procs[index].tot_time;
+	p->mem_usage = procs[index].mem_usage;
+	p->load_percentage = procs[index].load_percentage;
+
+	return;
+}
+
 // ottiene il valore del pid del processo da manipolare
 pid_t get_proc_pid(proc* p){
 
 	const char* str = " > Insert the PID of the process (esc to go back): ";
 	int len = strlen(str);
 			
-	if(write(0, str, len) == -1)
+	if(write(1, str, len) == -1)
 		handle_error("Errore nella stampa a schermo", 0);
 		
 	char buf[8];
@@ -258,8 +278,10 @@ pid_t get_proc_pid(proc* p){
 
 // ottiene l'inidirizzo del processo desiderato partendo dal pid
 proc* get_process_from_pid(pid_t pid){
+	
 	int idx = 0;
 	proc* p = 0;
+	
 	while(idx < num){
 		if(procs[idx].pid == pid){
 			p = &procs[idx];
@@ -272,19 +294,64 @@ proc* get_process_from_pid(pid_t pid){
 }
 
 // ottiene l'inidirizzo del processo desiderato partendo dal nome
-proc* get_process_from_name(const char* name){
+void get_process_from_name(const char* name){
 
 	int idx = 0;
-	proc* p = 0;
-	while(idx < num){
+	int inner_idx = 0;
+	proc p_arr[32];
+	
+	while(idx < num && inner_idx < 32){
+		
 		if(!strcmp(procs[idx].name, name)){
-			p = &procs[idx];
-			break;
+			process_info_cpy(&p_arr[inner_idx], idx);
+			inner_idx++;
 		}
 		idx++;
 	}
 	
-	return p;
+	if(inner_idx == 0){
+			const char* str = " > Process not found!\n";
+			write(0, str, strlen(str));
+			waiting();
+			return;
+	}
+	
+	printf(" > One or more processes with name '%s' have been found : \n", name);
+	printf("    +----------+-----------+------------------------+\n");
+	printf("    |   PID    |   START   |          PATH          |\n");
+	printf("    +----------+-----------+------------------------+\n");
+	
+	int m = 0;
+	int j = 0;
+	for(int i = 0; i < inner_idx; i++){
+		
+		printf("    | %d", p_arr[i].pid);
+		m = 8 - mod(p_arr[i].pid);
+		for(j = 0; j < m; j++)
+			printf(" ");
+		printf(" | ");
+		
+		printf("%lld", p_arr[i].starttime);
+		m = 9 - mod(p_arr[i].starttime);
+		for(j = 0; j < m; j++)
+			printf(" ");
+		printf(" | ");
+
+		m = strlen(p_arr[i].cmdline);
+		if(m >= 20)
+			printf(" %.18s...", p_arr[i].cmdline);
+		else{
+			printf(" %s", p_arr[i].cmdline);
+			m = 21 - m;
+			for(j = 0; j < m; j++)
+				printf(" ");
+		}
+		printf(" |\n");
+	}
+	printf("    +----------+-----------+------------------------+\n");
+	
+	waiting();
+	return;
 }
 
 // scansiona la struttura del processo per ottenerne informazioni
@@ -295,21 +362,11 @@ void get_process_info(proc* p, pid_t pid){
 		i++;
 		
 	if(i == num && procs[num].pid != pid){
-		printf("processo non trovato!\n");
+		printf(" > Process not found!\n");
 		return;
 		}
 	
-	p->pid = procs[i].pid;
-	strcpy(p->name, procs[i].name);
-	strcpy(p->cmdline, procs[i].cmdline);
-	p->status = procs[i].status;
-	p->starttime = procs[i].starttime;
-	p->utime = procs[i].utime;
-	p->stime = procs[i].stime;
-	p->children_time = procs[i].children_time;
-	p->tot_time = procs[i].tot_time;
-	p->mem_usage = procs[i].mem_usage;
-	p->load_percentage = procs[i].load_percentage;
+	process_info_cpy(p, i);
 	
 	return;
 }
@@ -324,7 +381,7 @@ void find_process(){
 	char* str = " > How to search the process? [name/pid] : ";
 	int len = strlen(str);
 	
-	if(write(0, str, len) == -1)
+	if(write(1, str, len) == -1)
 		handle_error("Errore durante la scrittura in stdin", 0);
 	
 	scanf("%s", buf);
@@ -337,7 +394,8 @@ void find_process(){
 		
 		scanf("%s", name);
 		
-		p = get_process_from_name(name);
+		get_process_from_name(name);
+		
 	}
 	
 	else if(!strcmp(buf, "pid")){
@@ -351,17 +409,18 @@ void find_process(){
 		
 		if(pid)
 			p = get_process_from_pid(pid);
+	
+		if(p == 0){
+			str = " > Process not found!\n";
+			write(0, str, strlen(str));
+			waiting();
+			}
+		
+		else{
+			print_process_info(*p, "searched");
+		}
 	}
 	
-	if(p == 0){
-		str = " > Process not found!\n";
-		write(0, str, strlen(str));
-		waiting();
-		}
-		
-	else{
-		print_process_info(*p, "searched");
-	}
 	
 }
 

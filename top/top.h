@@ -13,12 +13,12 @@
 #include <fcntl.h>
 
 #define PATH "/proc"
-#define NAME_SIZE 64
+#define NAME_SIZE 255
 #define MAX_PROCESSES 32768
 #define BUF_SIZE 128
 
 /*  MACRO PER SETTING FINESTRA */
-#define clrscr() printf("\e[1;1H\e[2J");
+#define clrscr() printf("\033[2J");
 #define resize_scr() printf("\e[8;31;99t\n");
 
 // struttura per processo
@@ -70,13 +70,14 @@ void get_stats(const char* path);
 void get_cmdline(const char* directory, char buf[]);
 void get_process_info(proc* p, pid_t pid);
 proc* get_process_from_pid(pid_t pid);
-proc* get_process_from_name(const char* name);
+void get_process_from_name(const char* name);
 void find_process();
 void program_runner(DIR* directory, struct dirent* dir);
 
 // stampa a schermo e gestione tabellare strutture processi
 void select_sorting();
 void bubblesort();
+int mod(long int m);
 int select_procs_to_print();
 void print_processes();
 void print_process_info(proc p, char* info);

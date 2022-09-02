@@ -15,7 +15,7 @@ void select_sorting(){
 	char* str = " > Sorting type [pid/name/mem/time/cpu] : ";
 	int len = strlen(str);
 	
-	if(write(0, str, len) == -1)
+	if(write(1, str, len) == -1)
 		handle_error("Errore durante la scrittura in stdin", 0);
 	
 	scanf("%s", s_type);
@@ -37,7 +37,7 @@ void select_sorting(){
 	str = " > Decreasing or increasing sorting? [d/i] : ";
 	len = strlen(str);
 	
-	if(write(0, str, len) == -1)
+	if(write(1, str, len) == -1)
 		handle_error("Errore durante la scrittura in stdin", 0);
 	
 	scanf("%s", choice);
@@ -194,17 +194,17 @@ int mod(long int m){
 int select_procs_to_print(){
 	char input[6];
 	memset(input, '\0', 6);
-	const char* str = " > How many processes to print? : ";
+	const char* str = " > How many processes to print? [0~50]: ";
 	int len = strlen(str);
 	
-	if(write(0, str, len) == -1)
+	if(write(1, str, len) == -1)
 		handle_error("Errore durante la scrittura in stdin", 0);
 	
 	scanf("%s", input);
 	
 	int ret = atoi(input);
 	
-	if(ret > 0)
+	if(ret > 0 && ret < 51)
 		return ret;
 	
 	return -1;
@@ -219,7 +219,7 @@ void print_table(){
 		int j;
 		
 		// stampa del pid
-		printf(" | %d", procs[i].pid);
+		printf("  | %d", procs[i].pid);
 		void_spaces = 6 - mod(procs[i].pid);
 		for(j = 0; j < void_spaces; j++)
 			printf(" ");
@@ -286,13 +286,13 @@ void print_processes(){
 	printf("  #  # # ### \t+-----------------------------------------------------+\n");
 	printf("  #  ### #\n\n");
 	
-	printf(" +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
-	printf(" |  PID  |     NAME     |          PATH          | STATUS |  TIME  |    RES MEM   |  CPU LOAD |\n");
-	printf(" +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
+	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
+	printf("  |  PID  |     NAME     |          PATH          | STATUS |  TIME  |    RES MEM   |  CPU LOAD |\n");
+	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
 	
 	print_table();
 		
-	printf(" +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
+	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
 	
 	printf("\n             +---------------------------------------------------------+");
 	printf("\n             |                    AVAILABLES COMMANDS                  |");

@@ -1,13 +1,14 @@
-OBJS	= top.o gets.o commands.o test_top.o print.o
-SOURCE	= top.c gets.c commands.c test_top.c print.c
+OBJS	= top.o gets.o commands.o main.o print.o
+SOURCE	= top.c gets.c commands.c main.c print.c
 HEADER	= top.h
-OUT	= test_top
+OUT	= main
 CC	 = gcc
 FLAGS	 = -g -c -Wall
 LFLAGS	 = -lpthread
 
 all: $(OBJS)
 	$(CC) -g $(OBJS) -o $(OUT) $(LFLAGS)
+	rm -rf .o* $(OBJS)
 
 top.o: top.c
 	$(CC) $(FLAGS) top.c 
@@ -21,8 +22,8 @@ gets.o: gets.c
 print.o: print.c
 	$(CC) $(FLAGS) print.c
 
-test_top.o: test_top.c
-	$(CC) $(FLAGS) test_top.c 
+test_top.o: main.c
+	$(CC) $(FLAGS) main.c 
 	
 clean:
 	rm -rf .o* $(OBJS) $(OUT)

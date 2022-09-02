@@ -117,7 +117,7 @@ int command_runner(int command){
 	if(command == -2){
 		const char* str = " > Invalid command, choose it among those available!\n";
 		int len = strlen(str);
-		write(0, str, len);
+		write(1, str, len);
 		waiting();
 		}
 	
