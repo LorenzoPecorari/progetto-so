@@ -12,11 +12,11 @@ void select_sorting(){
 	memset(s_type, '\0', 5);
 	memset(choice, '\0', 2);
 	
-	char* str = " > Sorting type [pid/name/mem/time/cpu] : ";
+	char* str = " > Sorting type [pid/name/mem/time/cpu] ('esc' to go back): ";
 	int len = strlen(str);
 	
 	if(write(1, str, len) == -1)
-		handle_error("Errore durante la scrittura in stdin", 0);
+		handle_error("Stdout writing error", 0);
 	
 	scanf("%s", s_type);
 	
@@ -38,7 +38,7 @@ void select_sorting(){
 	len = strlen(str);
 	
 	if(write(1, str, len) == -1)
-		handle_error("Errore durante la scrittura in stdin", 0);
+		handle_error("Stdout writing error", 0);
 	
 	scanf("%s", choice);
 	
@@ -194,13 +194,16 @@ int mod(long int m){
 int select_procs_to_print(){
 	char input[6];
 	memset(input, '\0', 6);
-	const char* str = " > How many processes to print? [0~50]: ";
+	const char* str = " > How many processes to print? [0~50] ('esc' to go back): ";
 	int len = strlen(str);
 	
 	if(write(1, str, len) == -1)
-		handle_error("Errore durante la scrittura in stdin", 0);
+		handle_error("Stdout writing error", 0);
 	
 	scanf("%s", input);
+	
+	if(!strcmp(input, "esc"))
+		return table_rows;
 	
 	int ret = atoi(input);
 	
@@ -287,7 +290,7 @@ void print_processes(){
 	printf("  #  ### #\n\n");
 	
 	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
-	printf("  |  PID  |     NAME     |          PATH          | STATUS |  TIME  |    RES MEM   |  CPU LOAD |\n");
+	printf("  |  PID  |     NAME     |          PATH          | STATUS |  TIME  | MEMORY (rss) |  CPU LOAD |\n");
 	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
 	
 	print_table();

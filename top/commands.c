@@ -107,20 +107,22 @@ int command_runner(int command){
 	else if(command == 4)
 		select_sorting();
 	
-	else if(command == 5)
+	else if(command == 5){
 		table_rows = select_procs_to_print();
+		if(table_rows >= 20 && table_rows < 31){
+			resize_scr_medium();
+			}
+		else if(table_rows >= 31){
+			resize_scr_large();
+			}
+		else if(table_rows < 20)
+			resize_scr_small();
+	}
 
 	else if(command == 6){
 		find_process();
 	}
 
-	if(command == -2){
-		const char* str = " > Invalid command, choose it among those available!\n";
-		int len = strlen(str);
-		write(1, str, len);
-		waiting();
-		}
-	
 	return 1;
 }
 

@@ -68,13 +68,14 @@ void sigalrm_handler(){
 		if(k == 10){
 		
 			if(write(1, " > Insert a command : ", strlen(" > Insert a command : ")) == -1)
-				handle_error("Errore di scrittura in stdin", 0);
+				handle_error("Stdout writing error", 0);
 		
 			char buf[32];
 			scanf("%s", buf);
 			
 			if(strlen(buf) > 1){
 				write(1, " Invalid command!\n", strlen("Invalid command\n"));
+				waiting();
 				return;
 				}
 				
@@ -84,6 +85,11 @@ void sigalrm_handler(){
 		}
 
 		cmd_selected = choose_command(k);
+		if(cmd_selected == -2){
+				write(1, " > Invalid command! Choose it from those availables!\n", strlen(" > Invalid command! Choose it from those availables!\n"));
+				waiting();
+				return;
+				}
 		
 		command_runner(cmd_selected);
 		cmd_selected = -1;
@@ -98,7 +104,7 @@ void initialize_timer(){
 	int ret = sigaction(SIGALRM, &act, NULL);
 	
 	if(ret == -1)
-		handle_error("Errore nella sigaction", 1);
+		handle_error("Sigaction error", 1);
 }
 
 // azzera le variabile usate dal programma
@@ -168,12 +174,12 @@ void program_runner(DIR* directory, struct dirent* dir){
 		directory = opendir(PATH);
 		
 		if(!directory)
-			handle_error("Errore della opendir del main", 0);
+			handle_error("Main opendir error", 0);
 		
 		dir = readdir(directory);
 			
 		if(!dir)
-			handle_error("Errore nel pasaggio di dir dal main", 0);
+			handle_error("Main dir pointer error", 0);
 		
 		get_uptime(dir);
 		get_memory();
@@ -184,7 +190,7 @@ void program_runner(DIR* directory, struct dirent* dir){
 		}
 			
 		if(closedir(directory) == -1)
-			handle_error("Errore nella chiusura della cartella dal main", 0);
+			handle_error("Closing directory error", 0);
 	
 		print_processes();
 	
@@ -204,7 +210,7 @@ void program_runner(DIR* directory, struct dirent* dir){
 		pthread_join(thr, NULL);
 	
 		if(pclose(f) == -1)
-			handle_error("Errore nell'apertura della pipe", 1);
+			handle_error("Pipe opening error", 1);
 		
 		sgn = 0;
 		

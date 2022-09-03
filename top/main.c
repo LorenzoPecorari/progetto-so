@@ -7,7 +7,7 @@ int main(void){
     num = 0;
     hertz = sysconf(_SC_CLK_TCK);
     
-    resize_scr();
+    resize_scr_small();
     
 	program_runner(directory, dir);
 	

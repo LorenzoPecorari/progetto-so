@@ -19,7 +19,9 @@
 
 /*  MACRO PER SETTING FINESTRA */
 #define clrscr() printf("\033[2J");
-#define resize_scr() printf("\e[8;31;99t\n");
+#define resize_scr_small() printf("\e[8;31;99t\n");
+#define resize_scr_medium() printf("\e[8;41;99t\n");
+#define resize_scr_large() printf("\e[8;51;99t\n");
 
 // struttura per processo
 typedef struct proc{
@@ -65,7 +67,6 @@ void insert_process(struct dirent* d);
 void remove_parenthesis(char* s);
 void get_uptime(struct dirent* d);
 void get_stat(const char* path_to_stat);
-void get_statm(const char* path_to_statm);
 void get_stats(const char* path);
 void get_cmdline(const char* directory, char buf[]);
 void get_process_info(proc* p, pid_t pid);
