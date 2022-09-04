@@ -7,34 +7,6 @@ long unsigned memory;
 long int hertz;
 proc procs[MAX_PROCESSES];
 
-// ottiene la dimensione della ram usabile
-void get_memory(){
-	char path[] = "/proc/meminfo";
-	int fd;
-	if(!(fd = open(path, O_RDONLY, 0666)))
-		handle_error("Meminfo fd opening error", 1);
-		
-	char buf[32];
-	memset(buf, 0, 32);
-	
-	int i = 0;
-	while(read(fd, &buf[i], 1) && i < 32 && buf[i]!=32)
-		i++;
-	
-	char temp = buf[i];
-	memset(buf, 0, 32);
-	i = 0;
-	buf[i] = temp;
-	i++;
-	
-	while(read(fd, &buf[i], 1) && i < 32 && buf[i] != 32){
-		i++;
-	}
-	
-	memory = atoi(buf);
-	return;
-}
-
 // rimuove le parentesi dal nome preso da stat
 void remove_parenthesis(char* s){
 	if(!s)

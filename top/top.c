@@ -180,7 +180,6 @@ void program_runner(DIR* directory, struct dirent* dir){
 			handle_error("Main dir pointer error", 0);
 		
 		get_uptime(dir);
-		get_memory();
 				
 		while(dir){
 			insert_process(dir);

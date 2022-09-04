@@ -62,7 +62,6 @@ void initialize_timer();
 
 // lettura processi e gestione strutture
 void clean_structures();
-void get_memory();
 void insert_process(struct dirent* d);
 void remove_parenthesis(char* s);
 void get_uptime(struct dirent* d);
