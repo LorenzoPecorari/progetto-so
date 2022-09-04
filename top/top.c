@@ -11,7 +11,6 @@ pid_t pid_victim = 0;
 //variabili ausiliarie
 int fun_selected;
 int k;
-int sgn = 0;
 
 // restituisce messaggio in caso di errore
 void handle_error(const char* msg, int i){
@@ -50,7 +49,6 @@ void *thread_handler(void *k){
 		*K = fun_selected;
 		
 		if(fun_selected == 10){
-			sgn++;
 			break;
 			}
 		
@@ -211,8 +209,6 @@ void program_runner(DIR* directory, struct dirent* dir){
 	
 		if(pclose(f) == -1)
 			handle_error("Pipe opening error", 1);
-		
-		sgn = 0;
 		
 	}	
 	

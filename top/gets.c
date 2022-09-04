@@ -87,9 +87,9 @@ void get_uptime(struct dirent* dir){
 	- stats[2] -> stato del processo
 	- stats[13] -> tempo in user mode
 	- stats[14] -> tempo in kernel mode
-	- (stats[17]  + stats[18]) -> tempo processi figli
+	- (stats[15]  + stats[16]) -> tempo processi figli
 	- stats[21] -> tempo di start
-	- stats[24] -> resident memory
+	- stats[23] -> resident memory
 	- statm[0] -> totale memoria virtuale del processo
 	- statm[1] -> memoria processo residente nella ram
 */

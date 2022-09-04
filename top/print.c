@@ -284,9 +284,13 @@ void print_processes(){
 	bubblesort();
 	clrscr();
 	
-	printf(" ### ### ###\t+-----------------------------------------------------+\n");
-	printf("  #  # # # # \t| No. processes : %d | Uptime : %.2ld | Load : %.2lf %c |\n", num, uptime, cpu_percentage, '%');
-	printf("  #  # # ### \t+-----------------------------------------------------+\n");
+	printf(" ### ### ###\t+--------------------------------------------------------+\n");
+	printf("  #  # # # # \t| No. processes : %d | Uptime : %.2ld", num, uptime); 
+	int sp = mod(uptime);
+	for(int i = 0; i < sp; i++)
+		printf(" ");
+	printf("| Load : %.2lf %c |\n", cpu_percentage, '%');
+	printf("  #  # # ### \t+--------------------------------------------------------+\n");
 	printf("  #  ### #\n\n");
 	
 	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
@@ -343,7 +347,7 @@ void print_process_info(proc p, char* info){
 	printf("|\n");
 	
 	printf("    +------------+-----------------------+\n");
-	printf("    |    Path    |");
+	printf("    |   Command  |");
 	
 	m = strlen(p.cmdline);
 	if(m >= 21)
