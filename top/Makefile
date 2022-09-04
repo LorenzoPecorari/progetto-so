@@ -22,7 +22,7 @@ gets.o: gets.c
 print.o: print.c
 	$(CC) $(FLAGS) print.c
 
-test_top.o: main.c
+main.o: main.c
 	$(CC) $(FLAGS) main.c 
 	
 clean:

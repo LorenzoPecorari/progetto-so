@@ -102,6 +102,7 @@ void get_stat(const char* path_to_stat){
     }
     
 	strcpy(procs[num].name, stats[1]);
+	memset(&procs[num].status, 0, 2);
     strcpy(&procs[num].status, stats[2]);
 	procs[num].utime = atol(stats[13]);
     procs[num].stime = atol(stats[14]);
@@ -138,8 +139,6 @@ void get_stats(const char* path){
 	get_stat(path_to_stat);
 	
 	procs[num].load_percentage = (double) (procs[num].tot_time / hertz) / (uptime - (procs[num].starttime / hertz)) * 100;
-    cpu_percentage += procs[num].load_percentage;
-    
     cpu_percentage += procs[num].load_percentage;
     	
 	return;
@@ -245,7 +244,8 @@ void get_process_from_name(const char* name){
 	
 	if(inner_idx == 0){
 			const char* str = " > Process not found!\n";
-			write(0, str, strlen(str));
+			if(write(0, str, strlen(str)))
+				handle_error("Stdout writing error", 0);
 			waiting();
 			return;
 	}
@@ -346,7 +346,8 @@ void find_process(){
 	
 		if(p == 0){
 			str = " > Process not found!\n";
-			write(0, str, strlen(str));
+			if(write(0, str, strlen(str)))
+				handle_error("Stdout writing error", 0);
 			waiting();
 			}
 		

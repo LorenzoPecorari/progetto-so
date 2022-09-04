@@ -72,7 +72,8 @@ void sigalrm_handler(){
 			scanf("%s", buf);
 			
 			if(strlen(buf) > 1){
-				write(1, " Invalid command!\n", strlen("Invalid command\n"));
+				if(write(1, " Invalid command!\n", strlen("Invalid command\n")))
+					handle_error("Stdout writing error", 0);
 				waiting();
 				return;
 				}
