@@ -53,7 +53,7 @@ void get_uptime(struct dirent* dir){
     return;
 }
 
-// analisi stat e statm del processo per ricavarne informazioni
+// analisi stat del processo per ricavarne informazioni
 /*
 	- stats[1] -> nome del processo
 	- stats[2] -> stato del processo
@@ -62,8 +62,6 @@ void get_uptime(struct dirent* dir){
 	- (stats[15]  + stats[16]) -> tempo processi figli
 	- stats[21] -> tempo di start
 	- stats[23] -> resident memory
-	- statm[0] -> totale memoria virtuale del processo
-	- statm[1] -> memoria processo residente nella ram
 */
 
 //legge  informazioni da /proc/[PID]/stat
@@ -122,19 +120,12 @@ void get_stats(const char* path){
 		
 	int path_size = 32;
 	char path_to_stat[path_size];
-	char path_to_statm[path_size];
 	
 	memset(path_to_stat, 0, path_size);
     strcpy(path_to_stat, PATH);
     strcat(path_to_stat, "/");
     strcat(path_to_stat, path);
     strcat(path_to_stat, "/stat");
-
-	memset(path_to_statm, 0, path_size);
-	strcpy(path_to_statm, PATH);
-    strcat(path_to_statm, "/");
-    strcat(path_to_statm, path);
-    strcat(path_to_statm, "/statm");
 
 	get_stat(path_to_stat);
 	
