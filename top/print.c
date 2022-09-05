@@ -296,7 +296,7 @@ void print_processes(){
 	printf("  #  ### #\n\n");
 	
 	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
-	printf("  |  PID  |     NAME     |          PATH          | STATUS |  TIME  | MEMORY (rss) |  CPU LOAD |\n");
+	printf("  |  PID  |     NAME     |        CMDLINE         | STATUS |  TIME  | MEMORY (rss) |  CPU LOAD |\n");
 	printf("  +-------+--------------+------------------------+--------+--------+--------------+-----------+\n");
 	
 	print_table();
