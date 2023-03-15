@@ -235,7 +235,7 @@ void get_process_from_name(const char* name){
 	
 	if(inner_idx == 0){
 			const char* str = " > Process not found!\n";
-			if(write(0, str, strlen(str)))
+			if(write(0, str, strlen(str)) == -1)
 				handle_error("Stdout writing error", 0);
 			waiting();
 			return;
@@ -304,49 +304,65 @@ void find_process(){
 		buf[i] = 0;
 
 	char* str = " > How to search the process? [name/pid] ('esc' to go back): ";
-	int len = strlen(str);
-	
-	if(write(1, str, len) == -1)
-		handle_error("Stdout writing error", 0);
-	
-	scanf("%s", buf);
-	
-	if(!strcmp(buf, "name")){
-		printf(" > Insert the name of the process to be searched : ");
-		char name[255];
-		for(int i = 0; i < 255; i++)
-			name[i] = 0;
+	int len = 0;
+
+	while(1){
+		len = strlen(str);
 		
-		scanf("%s", name);
+		if(write(1, str, len) == -1)
+			handle_error("Stdout writing error", 0);
 		
-		get_process_from_name(name);
+		scanf("%s", buf);
 		
-	}
-	
-	else if(!strcmp(buf, "pid")){
-		printf(" > Insert the pid of the process to be searched : ");
-		char pid_str[16];
-		for(int i = 0; i < 16; i++)
-			pid_str[i] = 0;
-		
-		scanf("%s", pid_str);
-		int pid = atoi(pid_str);
-		
-		if(pid)
-			p = get_process_from_pid(pid);
-	
-		if(p == 0){
-			str = " > Process not found!\n";
-			if(write(0, str, strlen(str)))
-				handle_error("Stdout writing error", 0);
-			waiting();
-			}
-		
-		else{
-			print_process_info(*p, "searched");
+		if(!strcmp(buf, "name")){
+			printf(" > Insert the name of the process to be searched : ");
+			char name[255];
+			for(int i = 0; i < 255; i++)
+				name[i] = 0;
+			
+			scanf("%s", name);
+			
+			get_process_from_name(name);
+			break;
 		}
+		
+		else if(!strcmp(buf, "pid")){
+			printf(" > Insert the pid of the process to be searched : ");
+			char pid_str[16];
+			for(int i = 0; i < 16; i++)
+				pid_str[i] = 0;
+			
+			scanf("%s", pid_str);
+			int pid = atoi(pid_str);
+			
+			if(pid)
+				p = get_process_from_pid(pid);
+		
+			if(p == 0){
+				str = " > Process not found!\n";
+				if(write(0, str, strlen(str)) == -1)
+					handle_error("Stdout writing error", 0);
+				waiting();
+				}
+			
+			else{
+				print_process_info(*p, "searched");
+			}
+
+			break;
+		}
+
+		else if(!strcmp(buf, "esc"))
+			break;
+		
+		else {
+			char str[] = " > Invalid choice, select one from 'name' or 'pid'\n";
+			if(write(0, str, strlen(str)) == -1)
+					handle_error("Stdout writing error", 0);
+				waiting();
+				}
+		}
+
+		return;	
 	}
-	
-	
-}
 

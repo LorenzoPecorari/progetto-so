@@ -72,7 +72,7 @@ void sigalrm_handler(){
 			scanf("%s", buf);
 			
 			if(strlen(buf) > 1){
-				if(write(1, " Invalid command!\n", strlen("Invalid command\n")))
+				if(write(1, " > Invalid command!\n\n", strlen(" > Invalid command\n\n" )) == -1)
 					handle_error("Stdout writing error", 0);
 				waiting();
 				return;
@@ -202,7 +202,7 @@ void program_runner(DIR* directory, struct dirent* dir){
 		
 		buf = '\0';
 	
-		fgets(&buf, 4, f);
+		fgets(&buf, 1, f);
 		
 		pthread_cancel(thr);
 		pthread_join(thr, NULL);

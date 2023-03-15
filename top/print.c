@@ -6,7 +6,7 @@ int sorting_mode = 3;
 
 // permette di selezionare ordinamento processi secondo parametri
 void select_sorting(){
-	char s_type[5];
+	char s_type[16];
 	char choice[2];
 	
 	memset(s_type, '\0', 5);
@@ -14,41 +14,84 @@ void select_sorting(){
 	
 	char* str = " > Sorting type [pid/name/mem/time/cpu] ('esc' to go back): ";
 	int len = strlen(str);
+
+	while(1){
+		while(1){
+			str = " > Sorting type [pid/name/mem/time/cpu] ('esc' to go back): ";
+			len = strlen(str);
 	
-	if(write(1, str, len) == -1)
-		handle_error("Stdout writing error", 0);
-	
-	scanf("%s", s_type);
-	
-	if(!strcmp("esc", s_type))
-		return;
-	
-	if(!strcmp("pid", s_type))
-		sorting_mode = 0;
-	else if(!strcmp("name", s_type))
-		sorting_mode = 1;
-	else if(!strcmp("mem", s_type))
-		sorting_mode = 2;
-	else if(!strcmp("time", s_type))
-		sorting_mode = 3;
-	else if(!strcmp("cpu", s_type))
-		sorting_mode = 4;
-	
-	str = " > Decreasing or increasing sorting? [d/i] : ";
-	len = strlen(str);
-	
-	if(write(1, str, len) == -1)
-		handle_error("Stdout writing error", 0);
-	
-	scanf("%s", choice);
-	
-	if(choice[0] == 'd')
-		sort = 0;
-	else if(choice[0] == 'i')
-		sort = 1;
+			if(write(1, str, len) == -1)
+				handle_error("Stdout writing error", 0);
+			
+			scanf("%s", s_type);
+		
+			if(!strcmp("esc", s_type))
+				return;
+		
+			if(!strcmp("pid", s_type)){
+				sorting_mode = 0;
+				break;
+			}
+
+			else if(!strcmp("name", s_type)){
+				sorting_mode = 1;
+				break;
+				}
+			
+			else if(!strcmp("mem", s_type)){
+				sorting_mode = 2;
+				break;
+			}
+			
+			else if(!strcmp("time", s_type)){
+				sorting_mode = 3;
+				break;
+			}
+
+			else if(!strcmp("cpu", s_type)){
+				sorting_mode = 4;
+				break;
+			}
+			else{
+				str = " > Invalid choice! Choose it from those availables!\n";
+				len = strlen(str);
+				if(write(1, str, len) == -1)
+					handle_error("Stdout writing error", 0);
+			}
+		}
+
+		int backup_sort = sort;
+		sort = -1;
+		
+		while(sort == -1){
+			str = " > Decreasing or increasing sorting? [d/i] ('e' to go back) : ";
+			len = strlen(str);
+			
+			if(write(1, str, len) == -1)
+				handle_error("Stdout writing error", 0);
+			
+			scanf("%s", choice);
+			
+			if(choice[0] == 'd')
+				sort = 0;
+			else if(choice[0] == 'i')
+				sort = 1;
+			else if(choice[0] == 'e'){
+				sort = backup_sort;
+				return;
+			}
+			else{
+				str = " > Invalid choice! Choose it from those availables!\n";
+				len = strlen(str);
+				sort = backup_sort;
+
+				if(write(1, str, len) == -1)
+					handle_error("Stdout writing error", 0);
+				}
+		}
+	}
 
 	return;
-	
 }
 
 // algoritmo bubblesort per ordinamento decrescente per impatto cpu
@@ -190,7 +233,7 @@ int mod(long int m){
 	return ret;
 }
 
-// selezione numero di processi da visualizzare in stampa
+// seleziona numero di processi da visualizzare in stampa
 int select_procs_to_print(){
 	char input[6];
 	memset(input, '\0', 6);
@@ -310,7 +353,7 @@ void print_processes(){
 	printf("\n             |  [t] -> terminates process   [k] -> kills process       |");
 	printf("\n             |  [s] -> suspends process     [r] -> resumes process     |");
 	printf("\n             |  [b] -> sorts processes      [p] -> prints processes    |");
-	printf("\n             |  [f] -> search a process     [q] -> closes the program  |");
+	printf("\n             |  [f] -> searches a process   [q] -> closes the program  |");
 	printf("\n             +---------------------------------------------------------+\n");
 	
 	return;
