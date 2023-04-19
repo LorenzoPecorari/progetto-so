@@ -3,7 +3,7 @@
 // variabili globali
 struct sigaction act;
 pthread_t thr;
-FILE *f;
+//FILE *f;
 int cmd_selected;
 int quit = 0;
 pid_t pid_victim = 0;
@@ -16,7 +16,7 @@ int k;
 void handle_error(const char* msg, int i){
 	printf("%s\n", msg);
 	if(i == 1){
-		pclose(f);
+		//pclose(f);
 		pthread_cancel(thr);
 		pthread_join(thr, NULL);
 		exit(EXIT_FAILURE);
@@ -161,7 +161,7 @@ void program_runner(DIR* directory, struct dirent* dir){
 	initialize_timer();
 	cmd_selected = -1;
 	
-	char buf;
+	//char buf;
 	
 	while(!quit){
 	
@@ -196,19 +196,19 @@ void program_runner(DIR* directory, struct dirent* dir){
 		
 		// file descriptor che apre pipe in ascolto su stdin
 		//  ed esegue una sleep di 1s
-		f = popen("sleep 1;", "r");
+		// LA PIPE SI POTREBBE TOGLIERE! (inutile) -> rimossa
+		//f = popen("", "r");
 
 		pause();
 		
-		buf = '\0';
-	
-		fgets(&buf, 1, f);
+		//buf = '\0';
+		//fgets(&buf, 1, f);
 		
 		pthread_cancel(thr);
 		pthread_join(thr, NULL);
 	
-		if(pclose(f) == -1)
-			handle_error("Pipe opening error", 1);
+		//if(pclose(f) == -1)
+			//handle_error("Pipe opening error", 1);
 		
 	}	
 	

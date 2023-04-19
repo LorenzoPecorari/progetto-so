@@ -201,7 +201,7 @@ pid_t get_proc_pid(proc* p){
 }
 
 // ottiene l'inidirizzo del processo desiderato partendo dal pid
-proc* get_process_from_pid(pid_t pid){
+proc* get_process_by_pid(pid_t pid){
 	
 	int idx = 0;
 	proc* p = 0;
@@ -218,7 +218,7 @@ proc* get_process_from_pid(pid_t pid){
 }
 
 // ottiene l'inidirizzo del processo desiderato partendo dal nome
-void get_process_from_name(const char* name){
+void get_process_by_name(const char* name){
 
 	int idx = 0;
 	int inner_idx = 0;
@@ -322,7 +322,7 @@ void find_process(){
 			
 			scanf("%s", name);
 			
-			get_process_from_name(name);
+			get_process_by_name(name);
 			break;
 		}
 		
@@ -336,7 +336,7 @@ void find_process(){
 			int pid = atoi(pid_str);
 			
 			if(pid)
-				p = get_process_from_pid(pid);
+				p = get_process_by_pid(pid);
 		
 			if(p == 0){
 				str = " > Process not found!\n";

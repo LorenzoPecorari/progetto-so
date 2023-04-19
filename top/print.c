@@ -72,14 +72,19 @@ void select_sorting(){
 			
 			scanf("%s", choice);
 			
-			if(choice[0] == 'd')
+			if(choice[0] == 'd'){
 				sort = 0;
-			else if(choice[0] == 'i')
+				return;
+				}
+			else if(choice[0] == 'i'){
 				sort = 1;
+				return;
+				}
 			else if(choice[0] == 'e'){
 				sort = backup_sort;
 				return;
-			}
+				}
+				
 			else{
 				str = " > Invalid choice! Choose it from those availables!\n";
 				len = strlen(str);
@@ -293,7 +298,10 @@ void print_table(){
 		}
 		
 		// stampa lo stato del processo
-		printf("|   %c    ", procs[i].status);
+		if(!strcmp(&procs[i].status,""))
+			printf("|   %c    ", '-');
+		else
+			printf("|   %c    ", procs[i].status);
 		
 		// stampa del tempo d'esecuzione
 		printf("| %ld", procs[i].tot_time);
@@ -350,10 +358,10 @@ void print_processes(){
 	printf("\n             |                    AVAILABLES COMMANDS                  |");
 	printf("\n             |              (Press enter to select a command)          |");
 	printf("\n             +---------------------------------------------------------+");
-	printf("\n             |  [t] -> terminates process   [k] -> kills process       |");
-	printf("\n             |  [s] -> suspends process     [r] -> resumes process     |");
-	printf("\n             |  [b] -> sorts processes      [p] -> prints processes    |");
-	printf("\n             |  [f] -> searches a process   [q] -> closes the program  |");
+	printf("\n             |  [t] -> terminate process    [k] -> kill process        |");
+	printf("\n             |  [s] -> suspend process      [r] -> resume process      |");
+	printf("\n             |  [b] -> sort processes       [p] -> print processes     |");
+	printf("\n             |  [f] -> search process       [q] -> close program       |");
 	printf("\n             +---------------------------------------------------------+\n");
 	
 	return;

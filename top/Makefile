@@ -8,7 +8,7 @@ LFLAGS	 = -lpthread
 
 all: $(OBJS)
 	$(CC) -g $(OBJS) -o $(OUT) $(LFLAGS)
-	rm -rf .o* $(OBJS)
+	rm -rf $(OBJS)
 
 top.o: top.c
 	$(CC) $(FLAGS) top.c 
@@ -26,4 +26,4 @@ main.o: main.c
 	$(CC) $(FLAGS) main.c 
 	
 clean:
-	rm -rf .o* $(OBJS) $(OUT)
+	rm -rf $(OBJS) $(OUT)
