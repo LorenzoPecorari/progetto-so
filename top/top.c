@@ -13,7 +13,7 @@ int k;
 
 // alloca la struttura di procs
 void allocate_procs(){
-	procs = (proc**) malloc(sizeof(proc*) * MAX_PROCESSES);
+	procs = (proc**) malloc(sizeof(proc*) * num);
     if(procs == NULL){
         handle_error("Invalid malloc", 1);
         return;
