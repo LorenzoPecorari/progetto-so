@@ -45,7 +45,7 @@ extern long int hertz;
 extern long unsigned uptime;
 extern double cpu_percentage;
 extern long unsigned memory;
-extern proc procs[MAX_PROCESSES];
+extern proc** procs;
 extern pthread_t thr;
 //extern FILE *f;
 extern int cmd_selected;
@@ -57,6 +57,10 @@ extern int table_rows;
 // gestione errori
 void handle_error(const char* msg, int i);
 
+// allocazione e deallocazione di procs
+void allocate_procs();
+void deallocate_procs();
+
 // gestione timer
 void initialize_timer();
 
@@ -64,6 +68,7 @@ void initialize_timer();
 void clean_structures();
 void insert_process(struct dirent* d);
 void remove_parenthesis(char* s);
+int get_num(DIR* directory, struct dirent* d);
 void get_uptime(struct dirent* d);
 void get_stat(const char* path_to_stat);
 void get_stats(const char* path);

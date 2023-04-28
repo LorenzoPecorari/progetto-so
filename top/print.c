@@ -101,7 +101,7 @@ void select_sorting(){
 
 // algoritmo bubblesort per ordinamento decrescente per impatto cpu
 void bubblesort(){
-	proc aux = procs[0];
+	proc aux = *(procs[0]);
 	int n;
 	
 	if(sorting_mode == 0){
@@ -109,20 +109,20 @@ void bubblesort(){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].pid < procs[j+1].pid){
-					aux = procs[j];
-					procs[j] = procs[j+1];
-					procs[j+1] = aux;
+					if(procs[j]->pid < procs[j+1]->pid){
+					aux = *procs[j];
+					*procs[j] = *procs[j+1];
+					*procs[j+1] = aux;
 					}
 			}
 		else if(sort == 1){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].pid > procs[j+1].pid){
-					aux = procs[j];
-					procs[j] = procs[j+1];
-					procs[j+1] = aux;
+					if(procs[j]->pid > procs[j+1]->pid){
+					aux = *procs[j];
+					*procs[j] = *procs[j+1];
+					*procs[j+1] = aux;
 					}
 			}
 	}
@@ -132,20 +132,20 @@ void bubblesort(){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(strcmp(procs[j].name, procs[j+1].name) < 0){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(strcmp(procs[j]->name, procs[j+1]->name) < 0){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 		else if(sort == 1){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(strcmp(procs[j].name, procs[j+1].name) > 0){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(strcmp(procs[j]->name, procs[j+1]->name) > 0){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 	}
@@ -155,20 +155,20 @@ void bubblesort(){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].mem_usage < procs[j+1].mem_usage){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(procs[j]->mem_usage < procs[j+1]->mem_usage){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 		else if(sort == 1){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].mem_usage > procs[j+1].mem_usage){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(procs[j]->mem_usage > procs[j+1]->mem_usage){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 	}
@@ -178,20 +178,20 @@ void bubblesort(){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].tot_time < procs[j+1].tot_time){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(procs[j]->tot_time < procs[j+1]->tot_time){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 		else if(sort == 1){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].tot_time > procs[j+1].tot_time){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(procs[j]->tot_time > procs[j+1]->tot_time){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 	}
@@ -201,20 +201,20 @@ void bubblesort(){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].load_percentage < procs[j+1].load_percentage){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(procs[j]->load_percentage < procs[j+1]->load_percentage){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 		else if(sort == 1){
 			n = num -1;
 			for(int i = 0; i < n-1; i++)
 				for(int j = 0; j < n-1; j++)
-					if(procs[j].load_percentage > procs[j+1].load_percentage){
-						aux = procs[j];
-						procs[j] = procs[j+1];
-						procs[j+1] = aux;
+					if(procs[j]->load_percentage > procs[j+1]->load_percentage){
+						aux = *procs[j];
+						*procs[j] = *procs[j+1];
+						*procs[j+1] = aux;
 					}
 			}
 	}
@@ -270,55 +270,55 @@ void print_table(){
 		int j;
 		
 		// stampa del pid
-		printf("  | %d", procs[i].pid);
-		void_spaces = 6 - mod(procs[i].pid);
+		printf("  | %d", procs[i]->pid);
+		void_spaces = 6 - mod(procs[i]->pid);
 		for(j = 0; j < void_spaces; j++)
 			printf(" ");
 		
 		// stampa del nome del processo
 		printf("| ");
-		if(strlen(procs[i].name) >= 12)
-			printf("%.9s... ", procs[i].name);
+		if(strlen(procs[i]->name) >= 12)
+			printf("%.9s... ", procs[i]->name);
 		else{
-			printf("%s", procs[i].name);
-			void_spaces = 13 - strlen(procs[i].name);
+			printf("%s", procs[i]->name);
+			void_spaces = 13 - strlen(procs[i]->name);
 			for(j = 0; j < void_spaces; j++)
 				printf(" ");
 		}
 		
 		// stampa del percorso
 		printf("| ");
-		if(strlen(procs[i].cmdline) >= 23)
-			printf("%.19s... ", procs[i].cmdline);
+		if(strlen(procs[i]->cmdline) >= 23)
+			printf("%.19s... ", procs[i]->cmdline);
 		else{
-			printf("%s", procs[i].cmdline);
-			void_spaces = 23 - strlen(procs[i].cmdline);
+			printf("%s", procs[i]->cmdline);
+			void_spaces = 23 - strlen(procs[i]->cmdline);
 			for(j = 0; j < void_spaces; j++)
 				printf(" ");
 		}
 		
 		// stampa lo stato del processo
-		if(!strcmp(&procs[i].status,""))
+		if(!strcmp(&procs[i]->status,""))
 			printf("|   %c    ", '-');
 		else
-			printf("|   %c    ", procs[i].status);
+			printf("|   %c    ", procs[i]->status);
 		
 		// stampa del tempo d'esecuzione
-		printf("| %ld", procs[i].tot_time);
-		void_spaces = 7 - mod(procs[i].tot_time);
+		printf("| %ld", procs[i]->tot_time);
+		void_spaces = 7 - mod(procs[i]->tot_time);
 		for(j = 0; j < void_spaces; j++)
 			printf(" ");
 		
 		// stampa della memoria "effettiva" occupata
-		printf("| %ld", procs[i].mem_usage);
-		void_spaces = 13 - mod(procs[i].mem_usage);
+		printf("| %ld", procs[i]->mem_usage);
+		void_spaces = 13 - mod(procs[i]->mem_usage);
 		for(j = 0; j < void_spaces; j++)
 			printf(" ");
 		
 		// stampa del carico sulla cpu
-		printf("| %.2lf %c", procs[i].load_percentage, '%');
+		printf("| %.2lf %c", procs[i]->load_percentage, '%');
 		void_spaces=0;
-		void_spaces = 5 - mod((int) procs[i].load_percentage);
+		void_spaces = 5 - mod((int) procs[i]->load_percentage);
 		for(j = 0; j < void_spaces; j++)
 			printf(" ");
 		

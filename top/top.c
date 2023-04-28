@@ -3,7 +3,6 @@
 // variabili globali
 struct sigaction act;
 pthread_t thr;
-//FILE *f;
 int cmd_selected;
 int quit = 0;
 pid_t pid_victim = 0;
@@ -12,6 +11,44 @@ pid_t pid_victim = 0;
 int fun_selected;
 int k;
 
+// alloca la struttura di procs
+void allocate_procs(){
+	procs = (proc**) malloc(sizeof(proc*) * MAX_PROCESSES);
+    if(procs == NULL){
+        handle_error("Invalid malloc", 1);
+        return;
+    }
+
+    for(int i = 0; i < num; i++){
+        procs[i] = (proc*) malloc(sizeof(proc));
+        if(procs[i] == NULL){
+           handle_error("Invalid proc malloc", 1);
+		   return;
+        }
+    }
+
+	return;
+}
+
+// dealloca la struttura di procs
+void deallocate_procs(){
+	if(procs == NULL){
+		handle_error("Invalid procs pointer", 1);
+		return;
+	}
+
+    for(int i = 0; i < num; i++){
+        if(sizeof(*procs[i]) != 0)
+			free(procs[i]);
+	}
+	
+	if(sizeof(*procs) != 0){
+		free(procs);
+	}
+	
+	return;
+}
+
 // restituisce messaggio in caso di errore
 void handle_error(const char* msg, int i){
 	printf("%s\n", msg);
@@ -19,6 +56,7 @@ void handle_error(const char* msg, int i){
 		//pclose(f);
 		pthread_cancel(thr);
 		pthread_join(thr, NULL);
+		deallocate_procs();
 		exit(EXIT_FAILURE);
 	}
 }
@@ -112,8 +150,18 @@ void clean_structures(){
 	cpu_percentage = 0;
 	memory = 0;
 	
-	for(int i = 0; i < num; i++)
-		procs[i] = (proc) {0};
+	for(int i = 0; i < num; i++){
+		memset(procs[i]->name, 0, NAME_SIZE);
+		memset(procs[i]->cmdline, 0, BUF_SIZE);
+		procs[i]->status = 0;
+		procs[i]->starttime = 0;
+		procs[i]->utime = 0;
+		procs[i]->stime = 0;
+		procs[i]->children_time = 0;
+		procs[i]->tot_time = 0;
+		procs[i]->mem_usage = 0;
+		procs[i]->load_percentage = 0;
+	}
 	
 	num = 0;
 }
@@ -137,16 +185,16 @@ void insert_process(struct dirent* d){
     get_cmdline(path_to_cmdline, cmdline_buf);
     get_stats(path);
 
-	procs[num].pid = atoi(d->d_name);
-	strcat(procs[num].cmdline, cmdline_buf);
+	(procs[num]->pid) = atoi(d->d_name);
+	strcat(procs[num]->cmdline, cmdline_buf);
 	
 	// da rivedere
-	int i = strlen(procs[num].cmdline);
+	int i = strlen(procs[num]->cmdline);
 	if(i >= 64){
 		int k = 0;
 	
 		while(k != 3){
-			procs[num].cmdline[i - k] = '.';
+			procs[num]->cmdline[i - k] = '.';
 			k++;
 		}
 	}
@@ -161,22 +209,67 @@ void program_runner(DIR* directory, struct dirent* dir){
 	initialize_timer();
 	cmd_selected = -1;
 	
-	//char buf;
-	
+	directory = opendir(PATH);
+	if(!directory)
+		handle_error("Main opendir error", 0);
+
+	dir = readdir(directory);
+	if(!dir)
+		handle_error("Main dir pointer error", 0);
+
+	int first_num = get_num(directory, dir);
+	num = 0;
+
+	if(closedir(directory) == -1)
+			handle_error("Closing directory error", 0);
+
+	if(first_num == -1)
+		first_num = 500;
+
+	num = first_num + 50;
+	int start = 0;
+	int dealloc = 0;
+	int temp = 0;
+	int allocated = num;
+	allocate_procs();
+	clean_structures();
+
 	while(!quit){
-	
+
+		if(start){
+			temp = num;
+			num = first_num;
+			allocated = num;
+			clean_structures();
+			num = temp;
+		}
+
+		if(num >= first_num && start){
+			temp = num;
+			num = first_num + 50;
+			deallocate_procs();
+			dealloc++;
+
+			first_num = temp + 50;
+			num = first_num;
+			allocated = num;
+			allocate_procs();
+			dealloc--;
+		}
+
+		num = 0;
 		k = 0;
-		clean_structures();
-		
+
+		if(!start)
+			start++;
+
 		pthread_create(&thr, NULL, thread_handler, &k);	
 		
-		directory = opendir(PATH);
-		
+		directory = opendir(PATH);		
 		if(!directory)
 			handle_error("Main opendir error", 0);
 		
 		dir = readdir(directory);
-			
 		if(!dir)
 			handle_error("Main dir pointer error", 0);
 		
@@ -194,23 +287,18 @@ void program_runner(DIR* directory, struct dirent* dir){
 	
 		alarm(1);
 		
-		// file descriptor che apre pipe in ascolto su stdin
-		//  ed esegue una sleep di 1s
-		// LA PIPE SI POTREBBE TOGLIERE! (inutile) -> rimossa
-		//f = popen("", "r");
-
 		pause();
-		
-		//buf = '\0';
-		//fgets(&buf, 1, f);
-		
+			
 		pthread_cancel(thr);
 		pthread_join(thr, NULL);
 	
-		//if(pclose(f) == -1)
-			//handle_error("Pipe opening error", 1);
-		
-	}	
+		}	
+	
+	if(num < allocated)
+		num = allocated;
+
+	if(dealloc == 0)
+		deallocate_procs();
 	
 	return;			
 }

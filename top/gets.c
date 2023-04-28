@@ -5,7 +5,7 @@ long unsigned uptime;
 double cpu_percentage;
 long unsigned memory;
 long int hertz;
-proc procs[MAX_PROCESSES];
+proc** procs;
 
 // rimuove le parentesi dal nome preso da stat
 void remove_parenthesis(char* s){
@@ -21,6 +21,26 @@ void remove_parenthesis(char* s){
 	s[i] = '\0';
 	
 	return;
+}
+
+// determina il numero di processi nel sistema
+int get_num(DIR* directory, struct dirent* d){
+	int ret = 0;
+	if(!d || !directory){
+		handle_error("Invalid directory pointer", 1);
+		return -1;
+	}
+
+	while(d){
+		printf("d->d_name: %s\n", d->d_name);
+		if(atoi(d->d_name))
+			ret++;
+		d = readdir(directory);
+	}
+
+	printf("ret: %d", ret);
+
+	return ret;
 }
 
 // ottiene il valore uptime di /proc
@@ -99,17 +119,17 @@ void get_stat(const char* path_to_stat){
     	handle_error("Stat fd closing error", 1);
     }
     
-	strcpy(procs[num].name, stats[1]);
-	memset(&procs[num].status, 0, 2);
-    strcpy(&procs[num].status, stats[2]);
-	procs[num].utime = atol(stats[13]);
-    procs[num].stime = atol(stats[14]);
-    procs[num].children_time = atol(stats[15]) + atol(stats[16]);
-    procs[num].tot_time = procs[num].utime + procs[num].stime + procs[num].children_time;
-    procs[num].starttime = atol(stats[21]);
-    procs[num].mem_usage = atol(stats[23]);
+	strcpy(procs[num]->name, stats[1]);
+	memset(&procs[num]->status, 0, 2);
+    strcpy(&procs[num]->status, stats[2]);
+	procs[num]->utime = atol(stats[13]);
+    procs[num]->stime = atol(stats[14]);
+    procs[num]->children_time = atol(stats[15]) + atol(stats[16]);
+    procs[num]->tot_time = procs[num]->utime + procs[num]->stime + procs[num]->children_time;
+    procs[num]->starttime = atol(stats[21]);
+    procs[num]->mem_usage = atol(stats[23]);
     
-	remove_parenthesis(procs[num].name);
+	remove_parenthesis(procs[num]->name);
 
 	return;
 }
@@ -129,8 +149,8 @@ void get_stats(const char* path){
 
 	get_stat(path_to_stat);
 	
-	procs[num].load_percentage = (double) (procs[num].tot_time / hertz) / (uptime - (procs[num].starttime / hertz)) * 100;
-    cpu_percentage += procs[num].load_percentage;
+	procs[num]->load_percentage = (double) (procs[num]->tot_time / hertz) / (uptime - (procs[num]->starttime / hertz)) * 100;
+    cpu_percentage += procs[num]->load_percentage;
     	
 	return;
 }
@@ -160,17 +180,17 @@ void process_info_cpy(proc* p, int index){
 	if(p == 0 || index > num || index < 1)
 		return;
 		
-	p->pid = procs[index].pid;
-	strcpy(p->name, procs[index].name);
-	strcpy(p->cmdline, procs[index].cmdline);
-	p->status = procs[index].status;
-	p->starttime = procs[index].starttime;
-	p->utime = procs[index].utime;
-	p->stime = procs[index].stime;
-	p->children_time = procs[index].children_time;
-	p->tot_time = procs[index].tot_time;
-	p->mem_usage = procs[index].mem_usage;
-	p->load_percentage = procs[index].load_percentage;
+	p->pid = procs[index]->pid;
+	strcpy(p->name, procs[index]->name);
+	strcpy(p->cmdline, procs[index]->cmdline);
+	p->status = procs[index]->status;
+	p->starttime = procs[index]->starttime;
+	p->utime = procs[index]->utime;
+	p->stime = procs[index]->stime;
+	p->children_time = procs[index]->children_time;
+	p->tot_time = procs[index]->tot_time;
+	p->mem_usage = procs[index]->mem_usage;
+	p->load_percentage = procs[index]->load_percentage;
 
 	return;
 }
@@ -207,8 +227,8 @@ proc* get_process_by_pid(pid_t pid){
 	proc* p = 0;
 	
 	while(idx < num){
-		if(procs[idx].pid == pid){
-			p = &procs[idx];
+		if(procs[idx]->pid == pid){
+			p = procs[idx];
 			break;
 		}
 		idx++;
@@ -226,7 +246,7 @@ void get_process_by_name(const char* name){
 	
 	while(idx < num && inner_idx < 32){
 		
-		if(!strcmp(procs[idx].name, name)){
+		if(!strcmp(procs[idx]->name, name)){
 			process_info_cpy(&p_arr[inner_idx], idx);
 			inner_idx++;
 		}
@@ -283,10 +303,10 @@ void get_process_by_name(const char* name){
 void get_process_info(proc* p, pid_t pid){
 	int i = 0;
 	
-	while(i < num && procs[i].pid != pid)
+	while(i < num && procs[i]->pid != pid)
 		i++;
 		
-	if(i == num && procs[num].pid != pid){
+	if(i == num && procs[num]->pid != pid){
 		printf(" > Process not found!\n");
 		return;
 		}
