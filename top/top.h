@@ -14,7 +14,7 @@
 
 #define PATH "/proc"
 #define NAME_SIZE 255
-#define MAX_PROCESSES 32768
+#define MAX_PROCESSES 65536
 #define BUF_SIZE 128
 
 /*  MACRO PER SETTING FINESTRA */

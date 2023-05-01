@@ -32,13 +32,10 @@ int get_num(DIR* directory, struct dirent* d){
 	}
 
 	while(d){
-		printf("d->d_name: %s\n", d->d_name);
 		if(atoi(d->d_name))
 			ret++;
 		d = readdir(directory);
 	}
-
-	printf("ret: %d", ret);
 
 	return ret;
 }

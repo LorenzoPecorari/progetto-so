@@ -13,6 +13,13 @@ int k;
 
 // alloca la struttura di procs
 void allocate_procs(){
+
+	if(num >= MAX_PROCESSES){
+		handle_error("Too many processes, shutting down...", 1);
+		quit++;
+		return;
+	}
+
 	procs = (proc**) malloc(sizeof(proc*) * num);
     if(procs == NULL){
         handle_error("Invalid malloc", 1);
@@ -42,7 +49,7 @@ void deallocate_procs(){
 			free(procs[i]);
 	}
 	
-	if(sizeof(*procs) != 0){
+	if(procs != 0){
 		free(procs);
 	}
 	
